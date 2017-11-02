@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 
 class SegmentTreeTest {
     private class ConcatPolicy : SemigroupPolicy<String> {
-        override fun combine(left: String, right: String): String = left + right
+        override fun reduce(left: String, right: String): String = left + right
     }
 
     @Test
