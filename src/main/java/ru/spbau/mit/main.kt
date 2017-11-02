@@ -121,7 +121,7 @@ class RangeQuerySolver<out T>(data: List<T>, private val policy: SemigroupPolicy
         override val size = data.size
         private val leftNode = createNode(data.subList(0, size / 2), policy)
         private val rightNode = createNode(data.subList(size / 2, size), policy)
-        val total = policy.combine(
+        private val total = policy.combine(
                 leftNode.getRangeValue(0, leftNode.size - 1, policy),
                 rightNode.getRangeValue(0, rightNode.size - 1, policy)
         )
