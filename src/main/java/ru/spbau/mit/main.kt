@@ -3,7 +3,6 @@ package ru.spbau.mit
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.PrintWriter
-import kotlin.streams.asStream
 
 /**
  * That class defines a semigroup structure on a type T.
@@ -306,7 +305,7 @@ class FlagSegmentConcatenator : SemigroupPolicy<FlagSegment> {
 fun solve(input: InputStream, output: OutputStream) {
     input.bufferedReader().use { reader ->
         PrintWriter(output).use { writer ->
-            val intReader = reader.lines().flatMap { it.split("\\s+".toRegex()).asSequence().asStream() }.map { Integer.parseInt(it) }.iterator()
+            val intReader = reader.lines().flatMap { it.split("\\s+".toRegex()).stream() }.map { Integer.parseInt(it) }.iterator()
             while (intReader.hasNext()) {
                 val height = intReader.next()
                 val width = intReader.next()
