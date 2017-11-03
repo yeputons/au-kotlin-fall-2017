@@ -29,7 +29,7 @@ class MainTest {
 
     @Test
     fun testMaxTest() {
-        val height = 3
+        val height = 10
         val width = 100000
         val queries = 100000
         val rnd = Random()
