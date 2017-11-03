@@ -195,8 +195,17 @@ class DisjointSetForest(val size: Int) {
  * E.g. it will transform `3, 2, 2, 1, 2, 10` into `0, 1, 1, 2, 1, 3`.
  */
 fun canonizeComponentsList(components: IntArray): IntArray {
-    val occuredIds = HashMap<Int, Int>()
-    return IntArray(components.size) { occuredIds.getOrPut(components[it], occuredIds::size) }
+    val occuredIds = IntArray(components.max()!! + 1, { -1 })
+    var componentsCount = 0
+    return IntArray(components.size) { position ->
+        val id = components[position]
+        if (occuredIds[id] == -1) {
+            occuredIds[id] = componentsCount
+            componentsCount++
+        } else {
+            occuredIds[id]
+        }
+    }
 }
 
 /**
