@@ -64,7 +64,7 @@ class RangeQuerySolver<out T>(data: List<T>, private val policy: SemigroupPolicy
      */
     fun getRangeValue(left: Int, right: Int): T {
         if (!(left in 0..right && right < size)) {
-            throw IndexOutOfBoundsException("Illegal range query: [$left; {$right}] when size is $size")
+            throw IndexOutOfBoundsException("Illegal range query: [$left; $right] when size is $size")
         }
         return root.getRangeValue(left, right, policy)
     }
