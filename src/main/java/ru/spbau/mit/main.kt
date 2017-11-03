@@ -145,5 +145,158 @@ class RangeQuerySolver<out T>(data: List<T>, private val policy: SemigroupPolicy
     }
 }
 
+/**
+ * Data structure which keeps `size` elements which are partitioned into disjoint
+ * subsets. Initially each element is in its own subset, and later one can `merge` two
+ * sets together. Each set has a 'root' element at any point of time, which can be used
+ * as set's ID.
+ *
+ * Performance:
+ * * Memory consumption: a single IntArray of size `size`
+ */
+class DisjointSetForest(val size: Int) {
+    private val parent = IntArray(size, { i -> i })
+
+    /**
+     * @param a an arbitrary element (should be between 0 and `size-1` incl.)
+     * @return a number of the root element of the set where element `a` is located
+     */
+    operator fun get(a: Int): Int {
+        if (parent[a] != a) {
+            parent[a] = get(parent[a])
+        }
+        return parent[a]
+    }
+
+    /**
+     * Merges two sets together.
+     * @param a an arbitrary element of the first set to merge (should be between 0 and `size-1` incl.)
+     * @param b an arbitrary element of the second set to merge (should be between 0 and `size-1` incl.)
+     * @return `true` if `a` and `b` were in different sets which are now merged, `false` if they were in the same set.
+     */
+    fun merge(a: Int, b: Int): Boolean {
+        val compA = get(a)
+        val compB = get(b)
+        parent[compA] = compB
+        return compA != compB
+    }
+}
+
+/**
+ * Given a sequence of integers (ids of connectivity components)
+ * renumbers components such that all ids are between 0 and number of components,
+ * and the resulting sequence is lexicographically minimal.
+ *
+ * E.g. it will transform `3, 2, 2, 1, 2, 10` into `0, 1, 1, 2, 1, 3`.
+ */
+fun canonizeComponentsList(components: List<Int>): List<Int> {
+    val occuredIds = HashMap<Int, Int>()
+    return components.map { occuredIds.getOrPut(it, occuredIds::size) }
+}
+
+/**
+ * Represents a segment of the flag.
+ * Knows total number of components in the segment, as well as which cells on both sides of
+ * the segment lie in the same component. This is denoted by `leftComponents` and `rightComponents`
+ * properties which contain IDs of components to which cells on the corresponding side belong.
+ *
+ * E.g. for the following segment:
+ *     1221
+ *     1111
+ *     2443
+ * The following FlagSegment will be constructed:
+ *     FlagSegment(leftColor=[1, 1, 2], rightColor=[1, 1, 3], totalComponents=5, leftComponents=[0, 0, 1], rightComponents=[0, 0, 2])
+ * Explanation: there are five different components, one appears on both ends (component 0), two
+ * are not visible on the sides, and two appear on different sides each (components 1 and 2).
+ */
+class FlagSegment(leftComponents: List<Int>, rightComponents: List<Int>, val leftColors: List<Int>, val rightColors: List<Int>, val totalComponents: Int) {
+    val leftComponents: List<Int>
+    val rightComponents: List<Int>
+
+    init {
+        if (leftComponents.size != rightComponents.size) {
+            throw IllegalArgumentException("leftComponents and rightComponents should have the same size")
+        }
+        if (leftComponents.size != leftColors.size) {
+            throw IllegalArgumentException("leftComponents and leftColors should have the same size")
+        }
+        if (rightComponents.size != rightColors.size) {
+            throw IllegalArgumentException("rightComponents and rightColors should have the same size")
+        }
+        val repainted = canonizeComponentsList(leftComponents + rightComponents)
+        this.leftComponents = repainted.take(leftComponents.size)
+        this.rightComponents = repainted.drop(leftComponents.size)
+    }
+
+    val height
+        get() = leftComponents.size
+
+    companion object {
+        fun fromSingleColumn(columnColors: List<Int>): FlagSegment {
+            var previousFlagColor = -1
+            var componentsCount = 0
+            val components = columnColors.map { color ->
+                if (previousFlagColor != color) {
+                    previousFlagColor = color
+                    componentsCount++
+                }
+                componentsCount - 1
+            }
+            return FlagSegment(components, components, columnColors, columnColors, componentsCount)
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as FlagSegment
+
+        if (leftColors != other.leftColors) return false
+        if (rightColors != other.rightColors) return false
+        if (totalComponents != other.totalComponents) return false
+        if (leftComponents != other.leftComponents) return false
+        if (rightComponents != other.rightComponents) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = leftColors.hashCode()
+        result = 31 * result + rightColors.hashCode()
+        result = 31 * result + totalComponents
+        result = 31 * result + leftComponents.hashCode()
+        result = 31 * result + rightComponents.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "FlagSegment(leftColors=$leftColors, rightColors=$rightColors, totalComponents=$totalComponents, leftComponents=$leftComponents, rightComponents=$rightComponents)"
+    }
+}
+
+class FlagSegmentConcatenator : SemigroupPolicy<FlagSegment> {
+    override fun reduce(left: FlagSegment, right: FlagSegment): FlagSegment {
+        assert(left.height == right.height)
+        val rightComponentIdOffset = left.height * 2
+        val components = DisjointSetForest(left.height * 4)
+        var totalComponents = left.totalComponents + right.totalComponents
+        (0 until left.height)
+                .filter { left.rightColors[it] == right.leftColors[it] }
+                .forEach {
+                    if (components.merge(left.rightComponents[it], rightComponentIdOffset + right.leftComponents[it])) {
+                        totalComponents--
+                    }
+                }
+        return FlagSegment(
+                left.leftComponents.map { components[it] },
+                right.rightComponents.map { components[rightComponentIdOffset + it] },
+                left.leftColors,
+                right.rightColors,
+                totalComponents
+        )
+    }
+}
+
 fun main(args: Array<String>) {
 }
