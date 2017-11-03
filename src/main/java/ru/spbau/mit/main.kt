@@ -317,12 +317,12 @@ class FlagSegmentConcatenator : SemigroupPolicy<FlagSegment> {
 fun solve(input: InputStream, output: OutputStream) {
     input.bufferedReader().use { reader ->
         PrintWriter(output).use { writer ->
-            val intReader = reader.lines().flatMap { it.split("\\s+".toRegex()).stream() }.map { Integer.parseInt(it) }.iterator()
-            while (intReader.hasNext()) {
-                val height = intReader.next()
-                val width = intReader.next()
-                val queries = intReader.next()
-                val flag = Array(height, { _ -> IntArray(width, { _ -> intReader.next() }) })
+            val tokenizer = StringTokenizer(reader.readText())
+            while (tokenizer.hasMoreTokens()) {
+                val height = tokenizer.nextToken().toInt()
+                val width = tokenizer.nextToken().toInt()
+                val queries = tokenizer.nextToken().toInt()
+                val flag = Array(height, { _ -> IntArray(width, { _ -> tokenizer.nextToken().toInt() }) })
                 val flagColumns =
                         (0 until width)
                                 .map { col -> IntArray(height) { row -> flag[row][col] } }
@@ -330,8 +330,8 @@ fun solve(input: InputStream, output: OutputStream) {
                 val solver = RangeQuerySolver(flagColumns, FlagSegmentConcatenator())
 
                 (0 until queries).forEach {
-                    val l = intReader.next() - 1
-                    val r = intReader.next() - 1
+                    val l = tokenizer.nextToken().toInt() - 1
+                    val r = tokenizer.nextToken().toInt() - 1
                     val result = solver.getRangeValue(l, r)
                     writer.println(result.totalComponents)
                 }
