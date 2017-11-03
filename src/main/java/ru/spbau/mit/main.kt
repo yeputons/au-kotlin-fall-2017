@@ -288,13 +288,13 @@ class FlagSegmentConcatenator : SemigroupPolicy<FlagSegment> {
         val rightComponentIdOffset = height * 2
         val components = DisjointSetForest(height * 4)
         var totalComponents = left.totalComponents + right.totalComponents
-        (0 until height)
-                .filter { left.rightColors[it] == right.leftColors[it] }
-                .forEach {
-                    if (components.merge(left.rightComponents[it], rightComponentIdOffset + right.leftComponents[it])) {
-                        totalComponents--
-                    }
+        for (row in 0 until height) {
+            if (left.rightColors[row] == right.leftColors[row]) {
+                if (components.merge(left.rightComponents[row], rightComponentIdOffset + right.leftComponents[row])) {
+                    totalComponents--
                 }
+            }
+        }
         return FlagSegment(
                 IntArray(height) { components[left.leftComponents[it]] },
                 IntArray(height) { components[rightComponentIdOffset + right.rightComponents[it]] },
