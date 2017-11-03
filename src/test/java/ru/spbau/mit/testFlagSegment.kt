@@ -3,42 +3,46 @@ package ru.spbau.mit
 import org.junit.Test
 import kotlin.test.assertEquals
 
+fun assertArrayEquals(expected: IntArray, actual: IntArray) {
+    assertEquals(expected.toList(), actual.toList())
+}
+
 class FlagSegmentTest {
     @Test
     fun testRepaintComponents() {
-        val input = listOf(3, 2, 2, 1, 2, 10)
-        val expected = listOf(0, 1, 1, 2, 1, 3)
-        assertEquals(expected, canonizeComponentsList(input).toList())
+        val input = intArrayOf(3, 2, 2, 1, 2, 10)
+        val expected = intArrayOf(0, 1, 1, 2, 1, 3)
+        assertArrayEquals(expected, canonizeComponentsList(input))
     }
 
     @Test
     fun testConstructor() {
-        val inputLeft = listOf(3, 2, 2)
-        val inputRight = listOf(1, 2, 10)
-        val colorsLeft = listOf(10, 20, 30)
-        val colorsRight = listOf(40, 50, 60)
-        val expectedLeft = listOf(0, 1, 1)
-        val expectedRight = listOf(2, 1, 3)
+        val inputLeft = intArrayOf(3, 2, 2)
+        val inputRight = intArrayOf(1, 2, 10)
+        val colorsLeft = intArrayOf(10, 20, 30)
+        val colorsRight = intArrayOf(40, 50, 60)
+        val expectedLeft = intArrayOf(0, 1, 1)
+        val expectedRight = intArrayOf(2, 1, 3)
         val stripe = FlagSegment(inputLeft, inputRight, colorsLeft, colorsRight, 4)
         assertEquals(3, stripe.height)
-        assertEquals(colorsLeft, stripe.leftColors)
-        assertEquals(colorsRight, stripe.rightColors)
+        assertArrayEquals(colorsLeft, stripe.leftColors)
+        assertArrayEquals(colorsRight, stripe.rightColors)
         assertEquals(4, stripe.totalComponents)
-        assertEquals(expectedLeft, stripe.leftComponents)
-        assertEquals(expectedRight, stripe.rightComponents)
+        assertArrayEquals(expectedLeft, stripe.leftComponents)
+        assertArrayEquals(expectedRight, stripe.rightComponents)
     }
 
     @Test
     fun testStripFromFlagStripe() {
-        val flagStripe = listOf(1, 1, 2, 1, 1, 4, 4, 1)
-        val components = listOf(0, 0, 1, 2, 2, 3, 3, 4)
+        val flagStripe = intArrayOf(1, 1, 2, 1, 1, 4, 4, 1)
+        val components = intArrayOf(0, 0, 1, 2, 2, 3, 3, 4)
         val stripe = FlagSegment.fromSingleColumn(flagStripe)
         assertEquals(8, stripe.height)
-        assertEquals(flagStripe, stripe.leftColors)
-        assertEquals(flagStripe, stripe.rightColors)
+        assertArrayEquals(flagStripe, stripe.leftColors)
+        assertArrayEquals(flagStripe, stripe.rightColors)
         assertEquals(5, stripe.totalComponents)
-        assertEquals(components, stripe.leftComponents)
-        assertEquals(components, stripe.rightComponents)
+        assertArrayEquals(components, stripe.leftComponents)
+        assertArrayEquals(components, stripe.rightComponents)
     }
 
     @Test
@@ -49,9 +53,9 @@ class FlagSegmentTest {
          * 3     3  +  6     6   12 ... 12
          * comps=3     comps=3    comps=3
          */
-        val left = FlagSegment(listOf(1, 2, 3), listOf(1, 2, 3), listOf(10, 20, 30), listOf(40, 50, 60), 3)
-        val right = FlagSegment(listOf(4, 5, 6), listOf(4, 5, 6), listOf(40, 50, 60), listOf(140, 150, 160), 3)
-        val expected = FlagSegment(listOf(10, 11, 12), listOf(10, 11, 12), listOf(10, 20, 30), listOf(140, 150, 160), 3)
+        val left = FlagSegment(intArrayOf(1, 2, 3), intArrayOf(1, 2, 3), intArrayOf(10, 20, 30), intArrayOf(40, 50, 60), 3)
+        val right = FlagSegment(intArrayOf(4, 5, 6), intArrayOf(4, 5, 6), intArrayOf(40, 50, 60), intArrayOf(140, 150, 160), 3)
+        val expected = FlagSegment(intArrayOf(10, 11, 12), intArrayOf(10, 11, 12), intArrayOf(10, 20, 30), intArrayOf(140, 150, 160), 3)
         assertEquals(expected, FlagSegmentConcatenator().reduce(left, right))
     }
 
@@ -65,26 +69,26 @@ class FlagSegmentTest {
          *
          * Joined components: 2, 4, 5
          */
-        val left = FlagSegment(listOf(1, 2, 3), listOf(2, 4, 4), listOf(10, 20, 30), listOf(40, 50, 60), 5)
-        val right = FlagSegment(listOf(5, 5, 6), listOf(5, 7, 6), listOf(40, 50, 130), listOf(140, 150, 160), 7)
-        val expected = FlagSegment(listOf(10, 11, 12), listOf(11, 13, 14), listOf(10, 20, 30), listOf(140, 150, 160), 10)
+        val left = FlagSegment(intArrayOf(1, 2, 3), intArrayOf(2, 4, 4), intArrayOf(10, 20, 30), intArrayOf(40, 50, 60), 5)
+        val right = FlagSegment(intArrayOf(5, 5, 6), intArrayOf(5, 7, 6), intArrayOf(40, 50, 130), intArrayOf(140, 150, 160), 7)
+        val expected = FlagSegment(intArrayOf(10, 11, 12), intArrayOf(11, 13, 14), intArrayOf(10, 20, 30), intArrayOf(140, 150, 160), 10)
         assertEquals(expected, FlagSegmentConcatenator().reduce(left, right))
     }
 
     @Test
     fun testFullFlag() {
-        val columns = listOf(
-                listOf(1, 1, 2), // left column
-                listOf(2, 1, 4),
-                listOf(2, 1, 4),
-                listOf(1, 1, 3)  // right column
+        val columns = arrayOf(
+                intArrayOf(1, 1, 2), // left column
+                intArrayOf(2, 1, 4),
+                intArrayOf(2, 1, 4),
+                intArrayOf(1, 1, 3)  // right column
         ).map({ FlagSegment.fromSingleColumn(it) })
         val stripe = columns.reduce(FlagSegmentConcatenator()::reduce)
         assertEquals(3, stripe.height)
-        assertEquals(listOf(1, 1, 2), stripe.leftColors)
-        assertEquals(listOf(1, 1, 3), stripe.rightColors)
+        assertArrayEquals(intArrayOf(1, 1, 2), stripe.leftColors)
+        assertArrayEquals(intArrayOf(1, 1, 3), stripe.rightColors)
         assertEquals(5, stripe.totalComponents)
-        assertEquals(listOf(0, 0, 1), stripe.leftComponents)
-        assertEquals(listOf(0, 0, 2), stripe.rightComponents)
+        assertArrayEquals(intArrayOf(0, 0, 1), stripe.leftComponents)
+        assertArrayEquals(intArrayOf(0, 0, 2), stripe.rightComponents)
     }
 }

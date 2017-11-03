@@ -3,6 +3,7 @@ package ru.spbau.mit
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.PrintWriter
+import java.util.*
 
 /**
  * That class defines a semigroup structure on a type T.
@@ -193,9 +194,9 @@ class DisjointSetForest(val size: Int) {
  *
  * E.g. it will transform `3, 2, 2, 1, 2, 10` into `0, 1, 1, 2, 1, 3`.
  */
-fun canonizeComponentsList(components: List<Int>): List<Int> {
+fun canonizeComponentsList(components: IntArray): IntArray {
     val occuredIds = HashMap<Int, Int>()
-    return components.map { occuredIds.getOrPut(it, occuredIds::size) }
+    return IntArray(components.size) { occuredIds.getOrPut(components[it], occuredIds::size) }
 }
 
 /**
@@ -213,9 +214,9 @@ fun canonizeComponentsList(components: List<Int>): List<Int> {
  * Explanation: there are five different components, one appears on both ends (component 0), two
  * are not visible on the sides, and two appear on different sides each (components 1 and 2).
  */
-class FlagSegment(leftComponents: List<Int>, rightComponents: List<Int>, val leftColors: List<Int>, val rightColors: List<Int>, val totalComponents: Int) {
-    val leftComponents: List<Int>
-    val rightComponents: List<Int>
+class FlagSegment(leftComponents: IntArray, rightComponents: IntArray, val leftColors: IntArray, val rightColors: IntArray, val totalComponents: Int) {
+    val leftComponents: IntArray
+    val rightComponents: IntArray
 
     init {
         if (leftComponents.size != rightComponents.size) {
@@ -228,18 +229,19 @@ class FlagSegment(leftComponents: List<Int>, rightComponents: List<Int>, val lef
             throw IllegalArgumentException("rightComponents and rightColors should have the same size")
         }
         val repainted = canonizeComponentsList(leftComponents + rightComponents)
-        this.leftComponents = repainted.take(leftComponents.size)
-        this.rightComponents = repainted.drop(leftComponents.size)
+        this.leftComponents = repainted.sliceArray(0 until leftComponents.size)
+        this.rightComponents = repainted.sliceArray(leftComponents.size until repainted.size)
     }
 
     val height
         get() = leftComponents.size
 
     companion object {
-        fun fromSingleColumn(columnColors: List<Int>): FlagSegment {
+        fun fromSingleColumn(columnColors: IntArray): FlagSegment {
             var previousFlagColor = -1
             var componentsCount = 0
-            val components = columnColors.map { color ->
+            val components = IntArray(columnColors.size) { row ->
+                val color = columnColors[row]
                 if (previousFlagColor != color) {
                     previousFlagColor = color
                     componentsCount++
@@ -256,36 +258,37 @@ class FlagSegment(leftComponents: List<Int>, rightComponents: List<Int>, val lef
 
         other as FlagSegment
 
-        if (leftColors != other.leftColors) return false
-        if (rightColors != other.rightColors) return false
+        if (!Arrays.equals(leftColors, other.leftColors)) return false
+        if (!Arrays.equals(rightColors, other.rightColors)) return false
         if (totalComponents != other.totalComponents) return false
-        if (leftComponents != other.leftComponents) return false
-        if (rightComponents != other.rightComponents) return false
+        if (!Arrays.equals(leftComponents, other.leftComponents)) return false
+        if (!Arrays.equals(rightComponents, other.rightComponents)) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = leftColors.hashCode()
-        result = 31 * result + rightColors.hashCode()
+        var result = Arrays.hashCode(leftColors)
+        result = 31 * result + Arrays.hashCode(rightColors)
         result = 31 * result + totalComponents
-        result = 31 * result + leftComponents.hashCode()
-        result = 31 * result + rightComponents.hashCode()
+        result = 31 * result + Arrays.hashCode(leftComponents)
+        result = 31 * result + Arrays.hashCode(rightComponents)
         return result
     }
 
     override fun toString(): String {
-        return "FlagSegment(leftColors=$leftColors, rightColors=$rightColors, totalComponents=$totalComponents, leftComponents=$leftComponents, rightComponents=$rightComponents)"
+        return "FlagSegment(leftColors=${Arrays.toString(leftColors)}, rightColors=${Arrays.toString(rightColors)}, totalComponents=$totalComponents, leftComponents=${Arrays.toString(leftComponents)}, rightComponents=${Arrays.toString(rightComponents)})"
     }
 }
 
 class FlagSegmentConcatenator : SemigroupPolicy<FlagSegment> {
     override fun reduce(left: FlagSegment, right: FlagSegment): FlagSegment {
-        assert(left.height == right.height)
-        val rightComponentIdOffset = left.height * 2
-        val components = DisjointSetForest(left.height * 4)
+        val height = left.height
+        assert(height == right.height)
+        val rightComponentIdOffset = height * 2
+        val components = DisjointSetForest(height * 4)
         var totalComponents = left.totalComponents + right.totalComponents
-        (0 until left.height)
+        (0 until height)
                 .filter { left.rightColors[it] == right.leftColors[it] }
                 .forEach {
                     if (components.merge(left.rightComponents[it], rightComponentIdOffset + right.leftComponents[it])) {
@@ -293,8 +296,8 @@ class FlagSegmentConcatenator : SemigroupPolicy<FlagSegment> {
                     }
                 }
         return FlagSegment(
-                left.leftComponents.map { components[it] },
-                right.rightComponents.map { components[rightComponentIdOffset + it] },
+                IntArray(height) { components[left.leftComponents[it]] },
+                IntArray(height) { components[rightComponentIdOffset + right.rightComponents[it]] },
                 left.leftColors,
                 right.rightColors,
                 totalComponents
@@ -313,7 +316,7 @@ fun solve(input: InputStream, output: OutputStream) {
                 val flag = Array(height, { _ -> IntArray(width, { _ -> intReader.next() }) })
                 val flagColumns =
                         (0 until width)
-                                .map { col -> (0 until height).map { row -> flag[row][col] } }
+                                .map { col -> IntArray(height) { row -> flag[row][col] } }
                                 .map(FlagSegment.Companion::fromSingleColumn)
                 val solver = RangeQuerySolver(flagColumns, FlagSegmentConcatenator())
 
