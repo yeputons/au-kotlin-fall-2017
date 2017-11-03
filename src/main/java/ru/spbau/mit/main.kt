@@ -1,5 +1,10 @@
 package ru.spbau.mit
 
+import java.io.InputStream
+import java.io.OutputStream
+import java.io.PrintWriter
+import kotlin.streams.asStream
+
 /**
  * That class defines a semigroup structure on a type T.
  * The following property should hold (associativity):
@@ -298,5 +303,32 @@ class FlagSegmentConcatenator : SemigroupPolicy<FlagSegment> {
     }
 }
 
+fun solve(input: InputStream, output: OutputStream) {
+    input.bufferedReader().use { reader ->
+        PrintWriter(output).use { writer ->
+            val intReader = reader.lines().flatMap { it.split("\\s+".toRegex()).asSequence().asStream() }.map { Integer.parseInt(it) }.iterator()
+            while (intReader.hasNext()) {
+                val height = intReader.next()
+                val width = intReader.next()
+                val queries = intReader.next()
+                val flag = Array(height, { _ -> IntArray(width, { _ -> intReader.next() }) })
+                val flagColumns =
+                        (0 until width)
+                                .map { col -> (0 until height).map { row -> flag[row][col] } }
+                                .map(FlagSegment.Companion::fromSingleColumn)
+                val solver = RangeQuerySolver(flagColumns, FlagSegmentConcatenator())
+
+                (0 until queries).forEach {
+                    val l = intReader.next() - 1
+                    val r = intReader.next() - 1
+                    val result = solver.getRangeValue(l, r)
+                    writer.println(result.totalComponents)
+                }
+            }
+        }
+    }
+}
+
 fun main(args: Array<String>) {
+    solve(System.`in`, System.out)
 }
