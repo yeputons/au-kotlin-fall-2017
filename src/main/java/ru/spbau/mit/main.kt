@@ -29,7 +29,7 @@ interface SemigroupPolicy<T> {
  *
  * Performance assuming `n` is equal to `data.length`:
  * * Memory consumption:
- * ** Requires between 2n and 4(n-1) instances of type `T` plus O(n) objects.
+ * ** Requires between ~2n instances of type `T` plus O(n) objects.
  * * Performance:
  * ** O(n) calls to `policy.reduce` and O(n) object creations during construction
  * ** O(log n) calls to `policy.reduce` per request plus O(log n) stack frames
