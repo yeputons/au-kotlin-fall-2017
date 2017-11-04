@@ -26,16 +26,11 @@ parameterNames      returns [List<String> value]        : (names+=IDENTIFIER (',
     { $value = $names.stream().map(x -> x.getText()).collect(java.util.stream.Collectors.toList()); } ;
 whileStatement      returns [WhileStatement value]      : 'while' '(' expression ')' statement
     { $value = new WhileStatement($expression.value, $statement.value); } ;
-ifStatement         returns [IfStatement value]         : 'if' '(' expression ')' true_body=statement ('else' false_body=statement)?
-    { $value = new IfStatement(
-        $expression.value,
-        $true_body.value,
-        /*$false_body.value == null
-            ? new BlockStatement(new Block(java.util.Collections.emptyList()))
-            : $false_body.value*/
-        $false_body.value
-      );
-    } ;
+ifStatement         returns [IfStatement value]
+    locals [Statement false_body_value = new BlockStatement(new Block(java.util.Collections.emptyList()))]
+    : 'if' '(' expression ')' true_body=statement ('else' false_body=statement { $false_body_value = $false_body.value; })?
+    { $value = new IfStatement($expression.value, $true_body.value, $false_body_value ); }
+    ;
 assignmentStatement returns [AssignmentStatement value] : IDENTIFIER '=' expression
     { $value = new AssignmentStatement($IDENTIFIER.text, $expression.value); } ;
 returnStatement     returns [ReturnStatement value]     : 'return' expression
