@@ -82,4 +82,28 @@ class TestParser {
         )
         assertEquals(expected, parser.file().value!!)
     }
+
+    @Test
+    fun testExample3() {
+        val parser = getParser("""
+            |fun foo(n) {
+            |    fun bar(m) {
+            |        return m + n
+            |    }
+            |
+            |    return bar(1)
+            |}
+            |
+            |println(foo(41)) // prints 42""".trimMargin())
+        val expected = block(
+                funDef("foo", listOf("n"),
+                        funDef("bar", listOf("m"),
+                                ReturnStatement(BinaryOperationExpression(v("m"), BinaryOperation.ADD, v("n")))
+                        ),
+                        ReturnStatement(callE("bar", i(1)))
+                ),
+                callS("println", callE("foo", i(41)))
+        )
+        assertEquals(expected, parser.file().value!!)
+    }
 }
