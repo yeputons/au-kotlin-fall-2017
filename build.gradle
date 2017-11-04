@@ -25,7 +25,7 @@ repositories {
 compileKotlin.dependsOn generateGrammarSource
 
 generateGrammarSource {
-    arguments += ['-package', 'ru.spbau.mit.parser']
+    arguments += ['-visitor', '-package', 'ru.spbau.mit.parser']
 }
 
 dependencies {
