@@ -41,4 +41,45 @@ class TestParser {
         )
         assertEquals(expected, parser.file().value!!)
     }
+
+    @Test
+    fun testExample2() {
+        val parser = getParser("""
+            |fun fib(n) {
+            |    if (n <= 1) {
+            |        return 1
+            |    }
+            |    return fib(n - 1) + fib(n - 2)
+            |}
+            |
+            |var i = 1
+            |while (i <= 5) {
+            |    println(i, fib(i))
+            |    i = i + 1
+            |}""".trimMargin())
+        val expected = block(
+                funDef("fib", listOf("n"),
+                        IfStatement(
+                                BinaryOperationExpression(v("n"), BinaryOperation.LE, i(1)),
+                                blockStmt(ReturnStatement(i(1))),
+                                blockStmt()
+                        ),
+                        ReturnStatement(BinaryOperationExpression(
+                                callE("fib", BinaryOperationExpression(v("n"), BinaryOperation.SUB, i(1))),
+                                BinaryOperation.ADD,
+                                callE("fib", BinaryOperationExpression(v("n"), BinaryOperation.SUB, i(2))
+                                ))
+                        )
+                ),
+                VariableStatement("i", i(1)),
+                WhileStatement(
+                        BinaryOperationExpression(v("i"), BinaryOperation.LE, i(5)),
+                        blockStmt(
+                                callS("println", v("i"), callE("fib", v("i"))),
+                                AssignmentStatement("i", BinaryOperationExpression(v("i"), BinaryOperation.ADD, i(1)))
+                        )
+                )
+        )
+        assertEquals(expected, parser.file().value!!)
+    }
 }
