@@ -1,9 +1,5 @@
 grammar Lang;
 
-@header {
-package ru.spbau.mit.parser;
-}
-
 file : block EOF ;
 block : statement* ;
 blockWithBraces : '{' block '}' ;
