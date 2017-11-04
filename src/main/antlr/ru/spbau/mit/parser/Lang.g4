@@ -36,7 +36,12 @@ assignmentStatement returns [AssignmentStatement value] : IDENTIFIER '=' express
 returnStatement     returns [ReturnStatement value]     : 'return' expression
     { $value = new ReturnStatement($expression.value); } ;
 
+// Left-recursive rule is a special case and are supported in ANTLR 4
+// See https://github.com/antlr/antlr4/blob/master/doc/left-recursion.md
+// Cases are listed from the highest priority to the lowest priority
 expression returns [Expression value]
+    // As we have multiple cases for binary expression with the same action,
+    // let's process them at once in the end.
     @after {
       if ($value == null) {
         $value = new BinaryOperationExpression(
