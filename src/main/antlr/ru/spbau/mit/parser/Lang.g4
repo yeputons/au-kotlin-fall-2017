@@ -4,11 +4,13 @@ grammar Lang;
 import ru.spbau.mit.ast.*;
 }
 
-file            returns [Block value] : block EOF     { $value = $block.value; } ;
-block           returns [Block value] : (stmts+=statement)*
+file                returns [Block value] : block EOF
+    { $value = $block.value; } ;
+block               returns [Block value] : (stmts+=statement)*
     { $value = new Block($stmts.stream().map(x -> x.value).collect(java.util.stream.Collectors.toList())); } ;
-blockWithBraces returns [Block value] : '{' block '}' { $value = $block.value; };
-statement returns [Statement value]
+blockWithBraces     returns [Block value] : '{' block '}'
+    { $value = $block.value; } ;
+statement           returns [Statement value]
     : functionStatement   { $value = $functionStatement.value; }
     | blockWithBraces     { $value = new BlockStatement($blockWithBraces.value); }
     | variableStatement   { $value = $variableStatement.value; }
@@ -18,22 +20,23 @@ statement returns [Statement value]
     | assignmentStatement { $value = $assignmentStatement.value; }
     | returnStatement     { $value = $returnStatement.value; }
     ;
-functionStatement   returns [FunctionDefinitionStatement value]   : 'fun' IDENTIFIER '(' parameterNames ')' blockWithBraces
+functionStatement   returns [FunctionDefinitionStatement value]  : 'fun' IDENTIFIER '(' parameterNames ')' blockWithBraces
     { $value = new FunctionDefinitionStatement($IDENTIFIER.text, $parameterNames.value, $blockWithBraces.value); } ;
-variableStatement   returns [VariableDeclarationStatement value]   : 'var' IDENTIFIER ('=' expression)?
+variableStatement   returns [VariableDeclarationStatement value] : 'var' IDENTIFIER ('=' expression)?
     { $value = new VariableDeclarationStatement($IDENTIFIER.text, $expression.value); } ;
-parameterNames      returns [List<String> value]        : (names+=IDENTIFIER (',' names+=IDENTIFIER)*)?
+parameterNames      returns [List<String> value]                 : (names+=IDENTIFIER (',' names+=IDENTIFIER)*)?
     { $value = $names.stream().map(x -> x.getText()).collect(java.util.stream.Collectors.toList()); } ;
-whileStatement      returns [WhileStatement value]      : 'while' '(' expression ')' statement
+whileStatement      returns [WhileStatement value]               : 'while' '(' expression ')' statement
     { $value = new WhileStatement($expression.value, $statement.value); } ;
 ifStatement         returns [IfStatement value]
     locals [Statement false_body_value = new BlockStatement(new Block(java.util.Collections.emptyList()))]
-    : 'if' '(' expression ')' true_body=statement ('else' false_body=statement { $false_body_value = $false_body.value; })?
-    { $value = new IfStatement($expression.value, $true_body.value, $false_body_value ); }
-    ;
-assignmentStatement returns [VariableAssignmentStatement value] : IDENTIFIER '=' expression
+    : 'if' '(' expression ')'
+        true_body=statement
+      ('else' false_body=statement { $false_body_value = $false_body.value; })?
+    { $value = new IfStatement($expression.value, $true_body.value, $false_body_value ); } ;
+assignmentStatement returns [VariableAssignmentStatement value]  : IDENTIFIER '=' expression
     { $value = new VariableAssignmentStatement($IDENTIFIER.text, $expression.value); } ;
-returnStatement     returns [ReturnStatement value]     : 'return' expression
+returnStatement     returns [ReturnStatement value]              : 'return' expression
     { $value = new ReturnStatement($expression.value); } ;
 
 // Left-recursive rule is a special case and are supported in ANTLR 4
