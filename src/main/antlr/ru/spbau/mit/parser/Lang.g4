@@ -18,10 +18,10 @@ statement returns [Statement value]
     | assignmentStatement { $value = $assignmentStatement.value; }
     | returnStatement     { $value = $returnStatement.value; }
     ;
-functionStatement   returns [FunctionStatement value]   : 'fun' IDENTIFIER '(' parameterNames ')' blockWithBraces
-    { $value = new FunctionStatement($IDENTIFIER.text, $parameterNames.value, $blockWithBraces.value); } ;
-variableStatement   returns [VariableStatement value]   : 'var' IDENTIFIER ('=' expression)?
-    { $value = new VariableStatement($IDENTIFIER.text, $expression.value); } ;
+functionStatement   returns [FunctionDefinitionStatement value]   : 'fun' IDENTIFIER '(' parameterNames ')' blockWithBraces
+    { $value = new FunctionDefinitionStatement($IDENTIFIER.text, $parameterNames.value, $blockWithBraces.value); } ;
+variableStatement   returns [VariableDeclarationStatement value]   : 'var' IDENTIFIER ('=' expression)?
+    { $value = new VariableDeclarationStatement($IDENTIFIER.text, $expression.value); } ;
 parameterNames      returns [List<String> value]        : (names+=IDENTIFIER (',' names+=IDENTIFIER)*)?
     { $value = $names.stream().map(x -> x.getText()).collect(java.util.stream.Collectors.toList()); } ;
 whileStatement      returns [WhileStatement value]      : 'while' '(' expression ')' statement
@@ -31,8 +31,8 @@ ifStatement         returns [IfStatement value]
     : 'if' '(' expression ')' true_body=statement ('else' false_body=statement { $false_body_value = $false_body.value; })?
     { $value = new IfStatement($expression.value, $true_body.value, $false_body_value ); }
     ;
-assignmentStatement returns [AssignmentStatement value] : IDENTIFIER '=' expression
-    { $value = new AssignmentStatement($IDENTIFIER.text, $expression.value); } ;
+assignmentStatement returns [VariableAssignmentStatement value] : IDENTIFIER '=' expression
+    { $value = new VariableAssignmentStatement($IDENTIFIER.text, $expression.value); } ;
 returnStatement     returns [ReturnStatement value]     : 'return' expression
     { $value = new ReturnStatement($expression.value); } ;
 
@@ -52,8 +52,8 @@ expression returns [Expression value]
       }
     }
     : functionCall        { $value = $functionCall.value; }
-    | literal             { $value = new LiteralExpression($literal.value); }
-    | IDENTIFIER          { $value = new IdentifierExpression($IDENTIFIER.text); }
+    | literal             { $value = new ConstExpression($literal.value); }
+    | IDENTIFIER          { $value = new VariableExpression($IDENTIFIER.text); }
     | '(' expression ')'  { $value = $expression.value; }
     | lhs=expression op='||' rhs=expression
     | lhs=expression op='&&' rhs=expression

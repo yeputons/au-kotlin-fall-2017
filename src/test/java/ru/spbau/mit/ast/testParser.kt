@@ -10,15 +10,15 @@ import kotlin.test.assertEquals
 class TestParser {
     private fun getParser(s: String): LangParser = LangParser(BufferedTokenStream(LangLexer(CharStreams.fromString(s))))
 
-    private fun v(name: String) = IdentifierExpression(name)
-    private fun i(value: Int) = LiteralExpression(value)
+    private fun v(name: String) = VariableExpression(name)
+    private fun i(value: Int) = ConstExpression(value)
 
     private fun block(vararg statements: Statement) = Block(listOf(*statements))
     private fun blockStmt(vararg statements: Statement) = BlockStatement(block(*statements))
     private fun callE(name: String, vararg args: Expression) = FunctionCallExpression(name, args.toList())
     private fun callS(name: String, vararg args: Expression) = ExpressionStatement(FunctionCallExpression(name, args.toList()))
 
-    private fun funDef(name: String, parameters: List<String>, vararg body: Statement) = FunctionStatement(name, parameters, block(*body))
+    private fun funDef(name: String, parameters: List<String>, vararg body: Statement) = FunctionDefinitionStatement(name, parameters, block(*body))
 
     @Test
     fun testExample1() {
@@ -31,8 +31,8 @@ class TestParser {
             |    println(0)
             |}""".trimMargin())
         val expected = block(
-                VariableStatement("a", i(10)),
-                VariableStatement("b", i(20)),
+                VariableDeclarationStatement("a", i(10)),
+                VariableDeclarationStatement("b", i(20)),
                 IfStatement(
                         BinaryOperationExpression(v("a"), BinaryOperation.GT, v("b")),
                         blockStmt(callS("println", i(1))),
@@ -71,12 +71,12 @@ class TestParser {
                                 ))
                         )
                 ),
-                VariableStatement("i", i(1)),
+                VariableDeclarationStatement("i", i(1)),
                 WhileStatement(
                         BinaryOperationExpression(v("i"), BinaryOperation.LE, i(5)),
                         blockStmt(
                                 callS("println", v("i"), callE("fib", v("i"))),
-                                AssignmentStatement("i", BinaryOperationExpression(v("i"), BinaryOperation.ADD, i(1)))
+                                VariableAssignmentStatement("i", BinaryOperationExpression(v("i"), BinaryOperation.ADD, i(1)))
                         )
                 )
         )
