@@ -9,13 +9,13 @@ import kotlin.test.assertFailsWith
 class ScopeTest {
     @Test
     fun testScopedMap() {
-        val level1 = ScopedMap<Int>(mutableMapOf("first" to 1, "second" to 2))
+        val level1 = ScopedMap(mutableMapOf("first" to 1, "second" to 2))
         assertEquals(1, level1["first"])
         assertEquals(2, level1["second"])
         level1.addOrShadow("second", 20)
         assertEquals(20, level1["second"])
 
-        val level2 = ScopedMap<Int>(level1)
+        val level2 = ScopedMap(level1)
         assertEquals(1, level2["first"])
         assertEquals(20, level2["second"])
 
@@ -94,8 +94,8 @@ class BinaryOperationTest {
 }
 
 class InterpretTest {
-    val printed = mutableListOf<List<InterpreterValue>>()
-    val context = BaseInterpretationContext(createStdlibScope(println = { printed.add(it); }))
+    private val printed = mutableListOf<List<InterpreterValue>>()
+    private val context = BaseInterpretationContext(createStdlibScope(println = { printed.add(it); }))
 
     @Test
     fun testPrintlnStub() {
@@ -134,7 +134,7 @@ class InterpretTest {
 
     @Test
     fun testVariableDeclarationAndEvaluation() {
-        assertEquals(null, context.run(VariableDeclarationStatement("foo", ConstExpression(123))))
+        assertNull(context.run(VariableDeclarationStatement("foo", ConstExpression(123))))
         assertEquals(123, context.run(VariableExpression("foo")))
     }
 
@@ -147,14 +147,14 @@ class InterpretTest {
 
     @Test
     fun testVariableDeclarationNoInit() {
-        assertEquals(null, context.run(VariableDeclarationStatement("foo", null)))
+        assertNull(context.run(VariableDeclarationStatement("foo", null)))
         assertEquals(0, context.run(VariableExpression("foo")))
     }
 
     @Test
     fun testVariableAssignment() {
-        assertEquals(null, context.run(VariableDeclarationStatement("foo", null)))
-        assertEquals(null, context.run(VariableAssignmentStatement("foo", ConstExpression(10))))
+        assertNull(context.run(VariableDeclarationStatement("foo", null)))
+        assertNull(context.run(VariableAssignmentStatement("foo", ConstExpression(10))))
         assertEquals(10, context.run(VariableExpression("foo")))
     }
 
@@ -234,10 +234,10 @@ class InterpretTest {
         val falseBody = BlockStatement(Block(listOf(
                 ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(30))))
         )))
-        assertEquals(null, context.run(IfStatement(ConstExpression(10), trueBody, falseBody)))
+        assertNull(context.run(IfStatement(ConstExpression(10), trueBody, falseBody)))
         assertEquals(listOf(listOf(20)), printed)
 
-        assertEquals(null, context.run(IfStatement(ConstExpression(0), trueBody, falseBody)))
+        assertNull(context.run(IfStatement(ConstExpression(0), trueBody, falseBody)))
         assertEquals(listOf(listOf(20), listOf(30)), printed)
     }
 
