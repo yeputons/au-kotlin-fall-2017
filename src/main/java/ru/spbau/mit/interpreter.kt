@@ -2,11 +2,24 @@ package ru.spbau.mit
 
 import ru.spbau.mit.ast.*
 
+/**
+ * All first-class values which can be handled by the interpreter.
+ */
 typealias InterpreterValue = Int
+
+/**
+ * Either a user-defined function or a builtin.
+ */
 typealias InterpreterFunction = (List<InterpreterValue>) -> InterpreterValue?
 
+/**
+ * Storage for variables, needed so different scopes can modify the same variable.
+ */
 data class MutableInterpreterValue(var value: InterpreterValue)
 
+/**
+ * Holds information about existing variables and functions and can execute code.
+ */
 interface InterpretationContext {
     fun run(stmt: Statement): InterpreterValue?
     fun run(expr: Expression): InterpreterValue
@@ -40,6 +53,9 @@ operator fun BinaryOperation.invoke(lhs: Lazy<InterpreterValue>, rhs: Lazy<Inter
         }
 
 class ScopedMap<T>(private val dict: MutableMap<String, T>) {
+    /**
+     * Make a copy of `parent`
+     */
     constructor(parent: ScopedMap<T>) : this(HashMap(parent.dict))
 
     operator fun get(name: String): T =
@@ -51,6 +67,9 @@ class ScopedMap<T>(private val dict: MutableMap<String, T>) {
 }
 
 class Scope(val functions: ScopedMap<InterpreterFunction>, val variables: ScopedMap<MutableInterpreterValue>) {
+    /**
+     * Make a copy of `parent`
+     */
     constructor(parent: Scope) : this(ScopedMap(parent.functions), ScopedMap(parent.variables))
 }
 
