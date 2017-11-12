@@ -323,4 +323,38 @@ class InterpretTest {
         assertEquals(12, context.run(FunctionCallExpression("add1", listOf(ConstExpression(10)))))
         assertEquals(listOf(listOf(11)), printed)
     }
+
+    @Test
+    fun testLocalFunctionVariable() {
+        assertEquals(null, context.run(VariableDeclarationStatement("x", ConstExpression(1))))
+        assertEquals(null, context.run(FunctionDefinitionStatement("foo", listOf("x"), Block(listOf(
+                VariableDeclarationStatement("y", BinaryOperationExpression(
+                        VariableExpression("x"),
+                        BinaryOperation.ADD,
+                        ConstExpression(5)
+                )),
+                VariableAssignmentStatement("y", BinaryOperationExpression(
+                        VariableExpression("y"),
+                        BinaryOperation.ADD,
+                        ConstExpression(5)
+                )),
+                ReturnStatement(BinaryOperationExpression(
+                        VariableExpression("y"),
+                        BinaryOperation.ADD,
+                        ConstExpression(100)
+                ))
+        )))))
+        assertEquals(1, context.run(VariableExpression("x")))
+        assertEquals(114, context.run(FunctionCallExpression("foo", listOf(
+                BinaryOperationExpression(
+                        VariableExpression("x"),
+                        BinaryOperation.MUL,
+                        ConstExpression(4)
+                )
+        ))))
+        assertEquals(1, context.run(VariableExpression("x")))
+        assertFailsWith (InterpreterException::class) {
+            context.run(VariableExpression("y"))
+        }
+    }
 }
