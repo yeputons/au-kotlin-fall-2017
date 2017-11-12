@@ -150,4 +150,99 @@ class InterpretTest {
         assertEquals(null, context.run(VariableDeclarationStatement("foo", null)))
         assertEquals(0, context.run(VariableExpression("foo")))
     }
+
+    @Test
+    fun testVariableAssignment() {
+        assertEquals(null, context.run(VariableDeclarationStatement("foo", null)))
+        assertEquals(null, context.run(VariableAssignmentStatement("foo", ConstExpression(10))))
+        assertEquals(10, context.run(VariableExpression("foo")))
+    }
+
+    @Test
+    fun testVariableAssignmentNoVariable() {
+        assertFailsWith(InterpreterException::class) {
+            context.run(VariableAssignmentStatement("foo", ConstExpression(10)))
+        }
+    }
+
+    @Test
+    fun testFunctionCallEvaluatesArguments() {
+        context.run(FunctionCallExpression("println", listOf(
+                BinaryOperationExpression(ConstExpression(10), BinaryOperation.DIV, ConstExpression(3)),
+                BinaryOperationExpression(ConstExpression(10), BinaryOperation.MOD, ConstExpression(3))
+        )))
+        assertEquals(listOf(listOf(3, 1)), printed)
+    }
+
+    @Test
+    fun testExpressionStatement() {
+        context.run(ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(20)))))
+        assertEquals(listOf(listOf(20)), printed)
+    }
+
+    @Test
+    fun testBlockStatement() {
+        context.run(BlockStatement(Block(listOf(
+                ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(20)))),
+                ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(30))))
+        ))))
+        assertEquals(listOf(listOf(20), listOf(30)), printed)
+    }
+
+    @Test
+    fun testFunctionDefinitionAndCall() {
+        context.run(FunctionDefinitionStatement("func", listOf(), Block(listOf(
+                ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(20)))),
+                ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(30))))
+        ))))
+        assertEquals(emptyList<List<InterpreterValue>>(), printed)
+        context.run(FunctionCallExpression("func", emptyList()))
+        assertEquals(listOf(listOf(20), listOf(30)), printed)
+    }
+
+    @Test
+    fun testFunctionDefinitionWithArguments() {
+        context.run(FunctionDefinitionStatement("func", listOf("x", "y"), Block(listOf(
+                ExpressionStatement(FunctionCallExpression("println", listOf(VariableExpression("x"), VariableExpression("y")))),
+                ExpressionStatement(FunctionCallExpression("println", listOf(VariableExpression("y"), VariableExpression("x"))))
+        ))))
+        assertEquals(emptyList<List<InterpreterValue>>(), printed)
+        context.run(FunctionCallExpression("func", listOf(ConstExpression(10), ConstExpression(20))))
+        assertEquals(listOf(listOf(10, 20), listOf(20, 10)), printed)
+    }
+
+    @Test
+    fun testFunctionDefinitionWrongNumberOfArguments() {
+        context.run(FunctionDefinitionStatement("func", listOf("x", "y"), Block(listOf(
+                ExpressionStatement(FunctionCallExpression("println", listOf(VariableExpression("x"), VariableExpression("y")))),
+                ExpressionStatement(FunctionCallExpression("println", listOf(VariableExpression("y"), VariableExpression("x"))))
+        ))))
+        assertEquals(emptyList<List<InterpreterValue>>(), printed)
+        assertFailsWith(InterpreterException::class) {
+            context.run(FunctionCallExpression("func", listOf(ConstExpression(10))))
+        }
+        assertFailsWith(InterpreterException::class) {
+            context.run(FunctionCallExpression("func", listOf(ConstExpression(10), ConstExpression(20), ConstExpression(30))))
+        }
+    }
+
+    @Test
+    fun testIfStatement() {
+        val trueBody = BlockStatement(Block(listOf(
+                ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(20))))
+        )))
+        val falseBody = BlockStatement(Block(listOf(
+                ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(30))))
+        )))
+        assertEquals(null, context.run(IfStatement(ConstExpression(10), trueBody, falseBody)))
+        assertEquals(listOf(listOf(20)), printed)
+
+        assertEquals(null, context.run(IfStatement(ConstExpression(0), trueBody, falseBody)))
+        assertEquals(listOf(listOf(20), listOf(30)), printed)
+    }
+
+    @Test
+    fun testReturn() {
+        assertEquals(10, context.run(ReturnStatement(ConstExpression(10))))
+    }
 }
