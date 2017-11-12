@@ -242,6 +242,30 @@ class InterpretTest {
     }
 
     @Test
+    fun testWhileStatement() {
+        assertNull(context.run(VariableDeclarationStatement("i", ConstExpression(10))))
+        assertNull(context.run(WhileStatement(
+                VariableExpression("i"),
+                VariableAssignmentStatement("i", BinaryOperationExpression(
+                        VariableExpression("i"),
+                        BinaryOperation.SUB,
+                        ConstExpression(1)
+                ))
+        )))
+        assertEquals(0, context.run(VariableExpression("i")))
+    }
+
+    @Test
+    fun testWhileStatementNoIteration() {
+        assertNull(context.run(VariableDeclarationStatement("i", ConstExpression(0))))
+        assertNull(context.run(WhileStatement(
+                VariableExpression("i"),
+                BlockStatement(Block(emptyList())))
+        ))
+        assertEquals(0, context.run(VariableExpression("i")))
+    }
+
+    @Test
     fun testReturn() {
         assertEquals(10, context.run(ReturnStatement(ConstExpression(10))))
     }
