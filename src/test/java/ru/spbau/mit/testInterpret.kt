@@ -2,10 +2,9 @@ package ru.spbau.mit
 
 import org.junit.Assert.*
 import org.junit.Test
-import ru.spbau.mit.ast.BinaryOperation
-import ru.spbau.mit.ast.ConstExpression
-import ru.spbau.mit.ast.FunctionCallExpression
+import ru.spbau.mit.ast.*
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class ScopeTest {
     @Test
@@ -112,5 +111,43 @@ class InterpretTest {
     @Test
     fun testConstExpressionEvaluation() {
         assertEquals(239, context.run(ConstExpression(239)))
+    }
+
+    @Test
+    fun testBinaryOperationEvaluation() {
+        assertEquals(239, context.run(
+                BinaryOperationExpression(
+                        BinaryOperationExpression(
+                                ConstExpression(10),
+                                BinaryOperation.MUL,
+                                ConstExpression(20)
+                        ),
+                        BinaryOperation.ADD,
+                        BinaryOperationExpression(
+                                ConstExpression(40),
+                                BinaryOperation.SUB,
+                                ConstExpression(1)
+                        )
+                )
+        ))
+    }
+
+    @Test
+    fun testVariableDeclarationAndEvaluation() {
+        assertEquals(null, context.run(VariableDeclarationStatement("foo", ConstExpression(123))))
+        assertEquals(123, context.run(VariableExpression("foo")))
+    }
+
+    @Test
+    fun testVariableMissing() {
+        assertFailsWith(InterpreterException::class) {
+            context.run(VariableExpression("foo"))
+        }
+    }
+
+    @Test
+    fun testVariableDeclarationNoInit() {
+        assertEquals(null, context.run(VariableDeclarationStatement("foo", null)))
+        assertEquals(0, context.run(VariableExpression("foo")))
     }
 }
