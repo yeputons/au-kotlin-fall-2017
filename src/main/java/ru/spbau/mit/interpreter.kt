@@ -63,8 +63,15 @@ class BaseInterpretationContext(private val scope: Scope) : InterpretationContex
                 is BinaryOperationExpression -> expr.op(lazy { run(expr.lhs) }, lazy { run(expr.rhs) }).value
             }
 
-    private fun run(block: Block): InterpreterValue? =
-            block.statements.map { run(it) }.last()
+    private fun run(block: Block): InterpreterValue? {
+        for (stmt in block.statements) {
+            val result = run(stmt)
+            if (result != null) {
+                return result
+            }
+        }
+        return null
+    }
 
     override fun run(stmt: Statement): InterpreterValue? {
         when (stmt) {
