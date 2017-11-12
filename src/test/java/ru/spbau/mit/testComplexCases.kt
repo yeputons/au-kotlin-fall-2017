@@ -7,6 +7,7 @@ import ru.spbau.mit.ast.BlockStatement
 import ru.spbau.mit.parser.LangLexer
 import ru.spbau.mit.parser.LangParser
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class ComplexCasesTest {
     private fun parse(s: String): BlockStatement = BlockStatement(LangParser(BufferedTokenStream(LangLexer(CharStreams.fromString(s)))).file().value!!)
@@ -65,5 +66,48 @@ class ComplexCasesTest {
             |println(foo(41)) // prints 42""".trimMargin())
         context.run(code)
         assertEquals(listOf(listOf(42)), printed)
+    }
+
+    @Test
+    fun testShadowing() {
+        // See https://github.com/java-course-au/kotlin-course/issues/37
+        val code = parse("""
+            |var x = 1
+            |if (1) {
+            |  var x = 2
+            |}
+            |println(x)""".trimMargin())
+        context.run(code)
+        assertEquals(listOf(listOf(1)), printed)
+    }
+
+    @Test
+    fun testClosureCapturesVariable() {
+        // See https://github.com/java-course-au/kotlin-course/issues/38
+        val code = parse("""
+            |fun foo(n) {
+            |    fun bar(m) {
+            |        return m + n
+            |    }
+            |    n = n + 1
+            |    return bar(1)
+            |}
+            |println(foo(41))  // prints 43""".trimMargin())
+        context.run(code)
+        assertEquals(listOf(listOf(43)), printed)
+    }
+
+    @Test
+    fun testNoCallerScopeLookup() {
+        // See https://github.com/java-course-au/kotlin-course/issues/38
+        val code = parse("""
+            |fun foo() {
+            |    println(n)
+            |}
+            |var n = 10
+            |println(foo())""".trimMargin())
+        assertFailsWith(InterpreterException::class) {
+            context.run(code)
+        }
     }
 }
