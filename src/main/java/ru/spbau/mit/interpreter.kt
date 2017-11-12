@@ -63,15 +63,11 @@ class BaseInterpretationContext(private val scope: Scope) : InterpretationContex
                 is BinaryOperationExpression -> expr.op(lazy { run(expr.lhs) }, lazy { run(expr.rhs) }).value
             }
 
-    private fun run(block: Block): InterpreterValue? {
-        for (stmt in block.statements) {
-            val result = run(stmt)
-            if (result != null) {
-                return result
-            }
-        }
-        return null
-    }
+    private fun run(block: Block): InterpreterValue? =
+            block.statements
+                    .asSequence()
+                    .map { run(it) }
+                    .firstOrNull { it != null }
 
     override fun run(stmt: Statement): InterpreterValue? {
         when (stmt) {
@@ -128,9 +124,9 @@ class BaseInterpretationContext(private val scope: Scope) : InterpretationContex
     }
 }
 
-fun createStdlibScope(println : (List<InterpreterValue>) -> Unit): Scope = Scope(
+fun createStdlibScope(println: (List<InterpreterValue>) -> Unit): Scope = Scope(
         functions = ScopedMap(mutableMapOf(
-                "println" to fun (args): InterpreterValue? { println(args); return null }
+                "println" to fun(args): InterpreterValue? { println(args); return null }
         )),
         variables = ScopedMap(mutableMapOf())
 )
