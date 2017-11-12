@@ -269,4 +269,40 @@ class InterpretTest {
     fun testReturn() {
         assertEquals(10, context.run(ReturnStatement(ConstExpression(10))))
     }
+
+    @Test
+    fun testReturnFromBlock() {
+        assertEquals(20, context.run(BlockStatement(Block(listOf(
+                ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(10)))),
+                ReturnStatement(ConstExpression(20)),
+                ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(30))))
+        )))))
+        assertEquals(listOf(listOf(10)), printed)
+    }
+
+    @Test
+    fun testReturnFromIf() {
+        val return10 = ReturnStatement(ConstExpression(10))
+        val print20 = ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(20))))
+
+        assertEquals(10, context.run(IfStatement(ConstExpression(1), trueBody = return10, falseBody = print20)))
+        assertEquals(emptyList<List<InterpreterValue>>(), printed)
+
+        assertEquals(null, context.run(IfStatement(ConstExpression(0), trueBody = return10, falseBody = print20)))
+        assertEquals(listOf(listOf(20)), printed)
+
+        assertEquals(null, context.run(IfStatement(ConstExpression(1), trueBody = print20, falseBody = return10)))
+        assertEquals(listOf(listOf(20), listOf(20)), printed)
+
+        assertEquals(10, context.run(IfStatement(ConstExpression(0), trueBody = print20, falseBody = return10)))
+        assertEquals(listOf(listOf(20), listOf(20)), printed)
+    }
+
+    @Test
+    fun testReturnFromWhile() {
+        assertEquals(10, context.run(WhileStatement(
+                ConstExpression(1),
+                ReturnStatement(ConstExpression(10))
+        )))
+    }
 }
