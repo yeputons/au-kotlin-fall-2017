@@ -120,3 +120,10 @@ class BaseInterpretationContext(private val scope: Scope) : InterpretationContex
         }
     }
 }
+
+fun createStdlibScope(println : (List<InterpreterValue>) -> Unit): Scope = Scope(
+        functions = ScopedMap(mutableMapOf(
+                "println" to fun (args): InterpreterValue? { println(args); return null }
+        )),
+        variables = ScopedMap(mutableMapOf())
+)
