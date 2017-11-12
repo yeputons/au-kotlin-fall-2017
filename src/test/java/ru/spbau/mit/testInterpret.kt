@@ -305,4 +305,22 @@ class InterpretTest {
                 ReturnStatement(ConstExpression(10))
         )))
     }
+
+    @Test
+    fun testReturnFromFunction() {
+        assertEquals(null, context.run(FunctionDefinitionStatement("add1", listOf("x"), Block(listOf(
+                ExpressionStatement(FunctionCallExpression("println", listOf(
+                        BinaryOperationExpression(VariableExpression("x"), BinaryOperation.ADD, ConstExpression(1))
+                ))),
+                ReturnStatement(
+                        BinaryOperationExpression(VariableExpression("x"), BinaryOperation.ADD, ConstExpression(2))
+                ),
+                ExpressionStatement(FunctionCallExpression("println", listOf(
+                        BinaryOperationExpression(VariableExpression("x"), BinaryOperation.ADD, ConstExpression(3))
+                )))
+        )))))
+        assertEquals(emptyList<List<InterpreterValue>>(), printed)
+        assertEquals(12, context.run(FunctionCallExpression("add1", listOf(ConstExpression(10)))))
+        assertEquals(listOf(listOf(11)), printed)
+    }
 }
