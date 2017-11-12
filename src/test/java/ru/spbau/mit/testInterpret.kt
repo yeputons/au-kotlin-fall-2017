@@ -176,25 +176,25 @@ class InterpretTest {
 
     @Test
     fun testExpressionStatement() {
-        context.run(ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(20)))))
+        assertNull(context.run(ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(20))))))
         assertEquals(listOf(listOf(20)), printed)
     }
 
     @Test
     fun testBlockStatement() {
-        context.run(BlockStatement(Block(listOf(
+        assertNull(context.run(BlockStatement(Block(listOf(
                 ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(20)))),
                 ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(30))))
-        ))))
+        )))))
         assertEquals(listOf(listOf(20), listOf(30)), printed)
     }
 
     @Test
     fun testFunctionDefinitionAndCall() {
-        context.run(FunctionDefinitionStatement("func", listOf(), Block(listOf(
+        assertNull(context.run(FunctionDefinitionStatement("func", listOf(), Block(listOf(
                 ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(20)))),
                 ExpressionStatement(FunctionCallExpression("println", listOf(ConstExpression(30))))
-        ))))
+        )))))
         assertEquals(emptyList<List<InterpreterValue>>(), printed)
         context.run(FunctionCallExpression("func", emptyList()))
         assertEquals(listOf(listOf(20), listOf(30)), printed)
@@ -202,10 +202,10 @@ class InterpretTest {
 
     @Test
     fun testFunctionDefinitionWithArguments() {
-        context.run(FunctionDefinitionStatement("func", listOf("x", "y"), Block(listOf(
+        assertNull(context.run(FunctionDefinitionStatement("func", listOf("x", "y"), Block(listOf(
                 ExpressionStatement(FunctionCallExpression("println", listOf(VariableExpression("x"), VariableExpression("y")))),
                 ExpressionStatement(FunctionCallExpression("println", listOf(VariableExpression("y"), VariableExpression("x"))))
-        ))))
+        )))))
         assertEquals(emptyList<List<InterpreterValue>>(), printed)
         context.run(FunctionCallExpression("func", listOf(ConstExpression(10), ConstExpression(20))))
         assertEquals(listOf(listOf(10, 20), listOf(20, 10)), printed)
@@ -213,10 +213,10 @@ class InterpretTest {
 
     @Test
     fun testFunctionDefinitionWrongNumberOfArguments() {
-        context.run(FunctionDefinitionStatement("func", listOf("x", "y"), Block(listOf(
+        assertNull(context.run(FunctionDefinitionStatement("func", listOf("x", "y"), Block(listOf(
                 ExpressionStatement(FunctionCallExpression("println", listOf(VariableExpression("x"), VariableExpression("y")))),
                 ExpressionStatement(FunctionCallExpression("println", listOf(VariableExpression("y"), VariableExpression("x"))))
-        ))))
+        )))))
         assertEquals(emptyList<List<InterpreterValue>>(), printed)
         assertFailsWith(InterpreterException::class) {
             context.run(FunctionCallExpression("func", listOf(ConstExpression(10))))
