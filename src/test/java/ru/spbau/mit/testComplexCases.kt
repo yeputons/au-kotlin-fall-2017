@@ -110,4 +110,40 @@ class ComplexCasesTest {
             context.run(code)
         }
     }
+
+    @Test
+    fun testLazyAnd() {
+        val code = parse("""
+            |fun printAndRet(print, ret) { println(print) return ret }
+            |println(printAndRet(10, 11) && printAndRet(12, 13))
+            |println(printAndRet(20, 21) && printAndRet(22, 0))
+            |println(printAndRet(30, 0) && printAndRet(32, 33))
+            |println(printAndRet(40, 0) && printAndRet(42, 0))
+            """.trimMargin());
+        context.run(code)
+        assertEquals(listOf(
+                listOf(10), listOf(12), listOf(13),
+                listOf(20), listOf(22), listOf(0),
+                listOf(30), listOf(0),
+                listOf(40), listOf(0)
+        ), printed)
+    }
+
+    @Test
+    fun testLazyOr() {
+        val code = parse("""
+            |fun printAndRet(print, ret) { println(print) return ret }
+            |println(printAndRet(10, 11) || printAndRet(12, 13))
+            |println(printAndRet(20, 21) || printAndRet(22, 0))
+            |println(printAndRet(30, 0) || printAndRet(32, 33))
+            |println(printAndRet(40, 0) || printAndRet(42, 0))
+            """.trimMargin());
+        context.run(code)
+        assertEquals(listOf(
+                listOf(10), listOf(11),
+                listOf(20), listOf(21),
+                listOf(30), listOf(32), listOf(33),
+                listOf(40), listOf(42), listOf(0)
+        ), printed)
+    }
 }
