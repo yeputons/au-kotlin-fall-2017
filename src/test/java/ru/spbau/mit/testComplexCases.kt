@@ -119,7 +119,7 @@ class ComplexCasesTest {
             |println(printAndRet(20, 21) && printAndRet(22, 0))
             |println(printAndRet(30, 0) && printAndRet(32, 33))
             |println(printAndRet(40, 0) && printAndRet(42, 0))
-            """.trimMargin());
+            """.trimMargin())
         context.run(code)
         assertEquals(listOf(
                 listOf(10), listOf(12), listOf(13),
@@ -137,7 +137,7 @@ class ComplexCasesTest {
             |println(printAndRet(20, 21) || printAndRet(22, 0))
             |println(printAndRet(30, 0) || printAndRet(32, 33))
             |println(printAndRet(40, 0) || printAndRet(42, 0))
-            """.trimMargin());
+            """.trimMargin())
         context.run(code)
         assertEquals(listOf(
                 listOf(10), listOf(11),
