@@ -1,14 +1,44 @@
 package ru.spbau.mit
 
-fun getGreeting(): String {
-    val words = mutableListOf<String>()
-    words.add("Hello,")
-    
-    words.add("world!")
-
-    return words.joinToString(separator = " ")
-}
+import ru.spbau.mit.tex.RequiredArgumentsList
+import ru.spbau.mit.tex.document
 
 fun main(args: Array<String>) {
-    println(getGreeting())
+    val rows = sequenceOf("foo", "bar", "baz")
+    document {
+        documentClass("beamer")
+        usepackage("babel", "russian")
+        usepackage("minted")
+        frame("This is frame #1's title", "fragile") {
+            itemize {
+                for (row in rows) {
+                    item { + "$row text" }
+                }
+            }
+
+            enumerate {
+                item { +"~10$ for foo_bar" }
+                item { +"This is #2" }
+            }
+
+            displayedFormula {
+                -"ax+by=c"
+            }
+            +"Now let's solve it:"
+            displayedFormula {
+                gathered(
+                        { -"ax=c-by" },
+                        { -"x="; frac({-"c-by"}, {-"a"}) }
+                )
+            }
+
+            customEnvironment("minted", RequiredArgumentsList("kotlin")) {
+                unescapedWriteLn(
+                """
+                |val a = 1
+                |
+                """.trimMargin())
+            }
+        }
+    }.toOutputStream(System.out)
 }
