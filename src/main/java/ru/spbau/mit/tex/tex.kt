@@ -6,15 +6,11 @@ import java.io.StringWriter
 import java.io.Writer
 
 sealed class ArgumentsList(vararg val args: String) {
-    override fun toString(): String {
-        return args.map(String::texTextEscape).joinToString(",")
-    }
+    override fun toString(): String = args.joinToString(",", transform = String::texTextEscape)
 }
 
 class OptionalArgumentsList(vararg args: String) : ArgumentsList(*args) {
-    override fun toString(): String {
-        return "[" + super.toString() + "]"
-    }
+    override fun toString(): String = "[" + super.toString() + "]"
 
     companion object {
         fun fromNonEmptyList(vararg args: String): OptionalArgumentsList? =
@@ -26,9 +22,7 @@ class OptionalArgumentsList(vararg args: String) : ArgumentsList(*args) {
 }
 
 class RequiredArgumentsList(vararg args: String) : ArgumentsList(*args) {
-    override fun toString(): String {
-        return "{" + super.toString() + "}"
-    }
+    override fun toString(): String = "{" + super.toString() + "}"
 
     companion object {
         fun fromNonEmptyList(vararg args: String): RequiredArgumentsList? =
@@ -41,11 +35,9 @@ class RequiredArgumentsList(vararg args: String) : ArgumentsList(*args) {
 
 private fun Writer.writeCommand(name: String, vararg argsLists: ArgumentsList?) {
     write("\\$name")
-    for (list in argsLists) {
-        if (list != null) {
-            write(list.toString())
-        }
-    }
+    argsLists
+            .filterNotNull()
+            .forEach { write(it.toString()) }
     write("\n")
 }
 
@@ -91,7 +83,7 @@ abstract class TexDsl(protected val out: Writer) {
 }
 
 class Document(out: Writer) : TexDsl(out) {
-    var documentStarted = false
+    private var documentStarted = false
 
     fun requirePreamble() {
         if (documentStarted) {
@@ -193,8 +185,7 @@ open class ContentContext(out: Writer) : TexDsl(out) {
     }
 }
 
-class Frame(out: Writer) : ContentContext(out) {
-}
+class Frame(out: Writer) : ContentContext(out)
 
 class Formula(out: Writer) : TexDsl(out) {
     operator fun String.unaryMinus() {
