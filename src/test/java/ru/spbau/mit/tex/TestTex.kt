@@ -1,6 +1,7 @@
 package ru.spbau.mit.tex
 
 import org.junit.Test
+import java.io.ByteArrayOutputStream
 import kotlin.test.assertEquals
 
 class ArgumentsTest {
@@ -278,5 +279,96 @@ class TestTexDsl {
                 |\end{frame}
                 |\end{document}
                 |""".trimMargin(), result)
+    }
+
+    @Test
+    fun testPreamble() {
+        val result = document {
+            documentClass("myclass")
+            usepackage("noargs")
+            usepackage("args", "arg1", "arg2")
+            usetheme("theme")
+        }.toString()
+        assertEquals(
+                """
+                |\documentclass{myclass}
+                |\usepackage{noargs}
+                |\usepackage[arg1,arg2]{args}
+                |\usetheme{theme}
+                |""".trimMargin(), result)
+    }
+
+    @Test
+    fun testDocumentClassArgs() {
+        val result = document {
+            documentClass("myclass", "dcarg1", "dcarg2")
+        }.toString()
+        assertEquals(
+                """
+                |\documentclass[dcarg1,dcarg2]{myclass}
+                |""".trimMargin(), result)
+    }
+
+    @Test(expected = Throwable::class)
+    fun testNoPreambleAfterDocument() {
+        document {
+            frame {}
+            requirePreamble()
+        }.toString()
+    }
+
+    @Test
+    fun testToOutputStream() {
+        val stream = ByteArrayOutputStream()
+        document {
+            customCommand("foo")
+        }.toOutputStream(stream)
+        val data = stream.toString("UTF8")
+        assertEquals("\\foo\n", data)
+    }
+
+    @Test
+    fun testFullDocument() {
+        val rows = listOf("foo", "bar", "baz")
+        val result = document {
+            documentClass("beamer")
+            usepackage("babel", "russian")
+            frame("frametitle", "arg1=arg2") {
+                itemize {
+                    for (row in rows) {
+                        item { + "$row text" }
+                    }
+                }
+
+                customEnvironment("pyglist", squareArguments("language" to "kotlin")) {
+                    unescapedWriteLn("""
+                    |val a = 1
+                    |
+                    """.trimMargin())
+                }
+            }
+        }.toString()
+        assertEquals(
+                """
+                |\documentclass{beamer}
+                |\usepackage[russian]{babel}
+                |\begin{document}
+                |\begin{frame}[arg1=arg2]{frametitle}
+                |\begin{itemize}
+                |\item
+                |foo text
+                |\item
+                |bar text
+                |\item
+                |baz text
+                |\end{itemize}
+                |\begin{pyglist}[language=kotlin]
+                |val a = 1
+                |
+                |\end{pyglist}
+                |\end{frame}
+                |\end{document}
+                |""".trimMargin(), result
+        )
     }
 }
