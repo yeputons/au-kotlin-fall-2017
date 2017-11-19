@@ -13,7 +13,7 @@ enum class ArgumentsBrackets(val opening: String, val closing: String) {
 class ArgumentsList(val type: ArgumentsBrackets, vararg val args: String) {
     override fun toString(): String =
             type.opening +
-                    args.joinToString(",", transform = String::texTextEscape) +
+                    args.joinToString(",") +
                     type.closing
 
     fun nonEmptyOrNull(): ArgumentsList? = if (args.isNotEmpty()) this else null
@@ -33,6 +33,8 @@ fun curlyArguments(vararg args: Pair<String, String?>) = ArgumentsList(Arguments
 
 fun squareArguments(vararg args: String) = ArgumentsList(ArgumentsBrackets.SQUARE, *args)
 fun squareArguments(vararg args: Pair<String, String?>) = ArgumentsList(ArgumentsBrackets.SQUARE, *keyValueArguments(*args))
+
+fun plainArgument(name: String) = name to null
 
 private fun Writer.writeCommand(name: String, vararg argsLists: ArgumentsList?) {
     write("\\$name")
@@ -125,7 +127,7 @@ class Document(out: Writer) : TexDsl(out) {
         out.writeEnvironment(
                 "frame",
                 squareArguments(*options).nonEmptyOrNull(),
-                if (frameTitle != null) curlyArguments(frameTitle)
+                if (frameTitle != null) curlyArguments(frameTitle.texTextEscape())
                 else null
         ) {
             Frame(out).init()
