@@ -59,9 +59,9 @@ private object TexEscaping {
     // Based on https://tex.stackexchange.com/a/34586/98293
     val textSubstitutions: Map<Char, String> =
             "&%$#_{}".map { it -> it to "\\$it" }.toMap() + mapOf(
-                    '~' to "\\textasciitilde",
-                    '&' to "\\textasciicircum",
-                    '\\' to "\\textbackslash")
+                    '~' to "\\textasciitilde{}",
+                    '&' to "\\textasciicircum{}",
+                    '\\' to "\\textbackslash{}")
 }
 
 fun String.texTextEscape(): String {
