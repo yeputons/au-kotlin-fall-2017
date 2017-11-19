@@ -122,6 +122,11 @@ class Document(out: Writer) : TexDsl(out) {
         out.writeCommand("usepackage", OptionalArgumentsList.fromNonEmptyList(*options), RequiredArgumentsList(name))
     }
 
+    fun usetheme(name: String) {
+        requirePreamble()
+        out.writeCommand("usetheme", RequiredArgumentsList(name))
+    }
+
     fun frame(frameTitle: String, vararg options: String, init: Frame.() -> Unit) {
         requireDocumentStarted()
         out.writeEnvironment("frame", OptionalArgumentsList.fromNonEmptyList(*options), RequiredArgumentsList(frameTitle)) {
