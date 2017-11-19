@@ -173,6 +173,13 @@ open class ContentContext(out: Writer) : TexDsl(out) {
         out.write("\\]\n")
     }
 
+    fun textbf(init: ContentContext.() -> Unit) {
+        out.writeCommand("textbf")
+        out.write("{")
+        init()
+        out.write("}")
+    }
+
     fun itemize(init: ItemsList.() -> Unit) {
         out.writeEnvironment("itemize") {
             ItemsList(out).init()
