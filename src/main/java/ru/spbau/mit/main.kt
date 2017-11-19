@@ -9,6 +9,7 @@ fun main(args: Array<String>) {
         documentClass("beamer")
         usepackage("babel", "russian")
         usepackage("minted")
+        usetheme("CambridgeUS")
         frame("This is frame #1's title", "fragile") {
             itemize {
                 for (row in rows) {
@@ -28,7 +29,10 @@ fun main(args: Array<String>) {
             displayedFormula {
                 gathered(
                         { -"ax=c-by" },
-                        { -"x="; frac({-"c-by"}, {-"a"}) }
+                        {
+                            -"x="
+                            frac({-"c-by"}, {-"a"})
+                        }
                 )
             }
 
