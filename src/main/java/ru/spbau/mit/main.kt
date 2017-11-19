@@ -1,7 +1,8 @@
 package ru.spbau.mit
 
-import ru.spbau.mit.tex.RequiredArgumentsList
+import ru.spbau.mit.tex.curlyArguments
 import ru.spbau.mit.tex.document
+import ru.spbau.mit.tex.squareArguments
 
 fun main(args: Array<String>) {
     val rows = sequenceOf("foo", "bar", "baz")
@@ -36,7 +37,7 @@ fun main(args: Array<String>) {
                 )
             }
 
-            customEnvironment("minted", RequiredArgumentsList("kotlin")) {
+            customEnvironment("minted", curlyArguments("kotlin")) {
                 unescapedWriteLn(
                 """
                 |val a = 1

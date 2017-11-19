@@ -5,33 +5,34 @@ import java.io.OutputStreamWriter
 import java.io.StringWriter
 import java.io.Writer
 
-sealed class ArgumentsList(vararg val args: String) {
-    override fun toString(): String = args.joinToString(",", transform = String::texTextEscape)
+enum class ArgumentsBrackets(val opening: String, val closing: String) {
+    CURLY("{", "}"),
+    SQUARE("[", "]")
 }
 
-class OptionalArgumentsList(vararg args: String) : ArgumentsList(*args) {
-    override fun toString(): String = "[" + super.toString() + "]"
+class ArgumentsList(val type: ArgumentsBrackets, vararg val args: String) {
+    override fun toString(): String =
+            type.opening +
+                    args.joinToString(",", transform = String::texTextEscape) +
+                    type.closing
 
-    companion object {
-        fun fromNonEmptyList(vararg args: String): OptionalArgumentsList? =
-                if (args.isEmpty())
-                    null
-                else
-                    OptionalArgumentsList(*args)
-    }
+    fun nonEmptyOrNull(): ArgumentsList? = if (args.isNotEmpty()) this else null
 }
 
-class RequiredArgumentsList(vararg args: String) : ArgumentsList(*args) {
-    override fun toString(): String = "{" + super.toString() + "}"
+private fun keyValueArguments(vararg args: Pair<String, String?>): Array<String> =
+        args.map {
+            assert("=" !in it.first);
+            if (it.second != null)
+                "${it.first}=${it.second}"
+            else
+                it.first
+        }.toTypedArray()
 
-    companion object {
-        fun fromNonEmptyList(vararg args: String): RequiredArgumentsList? =
-                if (args.isEmpty())
-                    null
-                else
-                    RequiredArgumentsList(*args)
-    }
-}
+fun curlyArguments(vararg args: String) = ArgumentsList(ArgumentsBrackets.CURLY, *args)
+fun curlyArguments(vararg args: Pair<String, String?>) = ArgumentsList(ArgumentsBrackets.CURLY, *keyValueArguments(*args))
+
+fun squareArguments(vararg args: String) = ArgumentsList(ArgumentsBrackets.SQUARE, *args)
+fun squareArguments(vararg args: Pair<String, String?>) = ArgumentsList(ArgumentsBrackets.SQUARE, *keyValueArguments(*args))
 
 private fun Writer.writeCommand(name: String, vararg argsLists: ArgumentsList?) {
     write("\\$name")
@@ -42,9 +43,9 @@ private fun Writer.writeCommand(name: String, vararg argsLists: ArgumentsList?) 
 }
 
 private fun Writer.writeEnvironment(name: String, vararg argsLists: ArgumentsList?, content: () -> Unit) {
-    writeCommand("begin", RequiredArgumentsList(name), *argsLists)
+    writeCommand("begin", curlyArguments(name), *argsLists)
     content()
-    writeCommand("end", RequiredArgumentsList(name))
+    writeCommand("end", curlyArguments(name))
 }
 
 private object TexEscaping {
@@ -94,34 +95,39 @@ class Document(out: Writer) : TexDsl(out) {
     fun requireDocumentStarted() {
         if (!documentStarted) {
             documentStarted = true
-            out.writeCommand("begin", RequiredArgumentsList("document"))
+            out.writeCommand("begin", curlyArguments("document"))
         }
     }
 
     internal fun endDocument() {
         if (documentStarted) {
-            out.writeCommand("end", RequiredArgumentsList("document"))
+            out.writeCommand("end", curlyArguments("document"))
         }
     }
 
     fun documentClass(cls: String, vararg options: String) {
         requirePreamble()
-        out.writeCommand("documentclass", OptionalArgumentsList.fromNonEmptyList(*options), RequiredArgumentsList(cls))
+        out.writeCommand("documentclass", squareArguments(*options).nonEmptyOrNull(), curlyArguments(cls))
     }
 
     fun usepackage(name: String, vararg options: String) {
         requirePreamble()
-        out.writeCommand("usepackage", OptionalArgumentsList.fromNonEmptyList(*options), RequiredArgumentsList(name))
+        out.writeCommand("usepackage", squareArguments(*options).nonEmptyOrNull(), curlyArguments(name))
     }
 
     fun usetheme(name: String) {
         requirePreamble()
-        out.writeCommand("usetheme", RequiredArgumentsList(name))
+        out.writeCommand("usetheme", curlyArguments(name))
     }
 
-    fun frame(frameTitle: String, vararg options: String, init: Frame.() -> Unit) {
+    fun frame(frameTitle: String? = null, vararg options: String, init: Frame.() -> Unit) {
         requireDocumentStarted()
-        out.writeEnvironment("frame", OptionalArgumentsList.fromNonEmptyList(*options), RequiredArgumentsList(frameTitle)) {
+        out.writeEnvironment(
+                "frame",
+                squareArguments(*options).nonEmptyOrNull(),
+                if (frameTitle != null) curlyArguments(frameTitle)
+                else null
+        ) {
             Frame(out).init()
         }
     }
