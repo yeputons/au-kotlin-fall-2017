@@ -28,9 +28,11 @@ private fun keyValueArguments(vararg args: Pair<String, String?>): Array<String>
                 it.first
         }.toTypedArray()
 
+fun curlyArguments() = ArgumentsList(ArgumentsBrackets.CURLY)
 fun curlyArguments(vararg args: String) = ArgumentsList(ArgumentsBrackets.CURLY, *args)
 fun curlyArguments(vararg args: Pair<String, String?>) = ArgumentsList(ArgumentsBrackets.CURLY, *keyValueArguments(*args))
 
+fun squareArguments() = ArgumentsList(ArgumentsBrackets.SQUARE)
 fun squareArguments(vararg args: String) = ArgumentsList(ArgumentsBrackets.SQUARE, *args)
 fun squareArguments(vararg args: Pair<String, String?>) = ArgumentsList(ArgumentsBrackets.SQUARE, *keyValueArguments(*args))
 
@@ -55,7 +57,7 @@ private object TexEscaping {
     val textSubstitutions: Map<Char, String> =
             "&%$#_{}".map { it -> it to "\\$it" }.toMap() + mapOf(
                     '~' to "\\textasciitilde{}",
-                    '&' to "\\textasciicircum{}",
+                    '^' to "\\textasciicircum{}",
                     '\\' to "\\textbackslash{}")
 }
 
