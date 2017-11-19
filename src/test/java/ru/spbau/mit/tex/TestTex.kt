@@ -333,7 +333,8 @@ class TestTexDsl {
         val result = document {
             documentClass("beamer")
             usepackage("babel", "russian")
-            frame("frametitle", "arg1=arg2") {
+            usepackage("verbments")
+            frame("frametitle", "fragile") {
                 itemize {
                     for (row in rows) {
                         item { + "$row text" }
@@ -352,8 +353,9 @@ class TestTexDsl {
                 """
                 |\documentclass{beamer}
                 |\usepackage[russian]{babel}
+                |\usepackage{verbments}
                 |\begin{document}
-                |\begin{frame}[arg1=arg2]{frametitle}
+                |\begin{frame}[fragile]{frametitle}
                 |\begin{itemize}
                 |\item
                 |foo text
