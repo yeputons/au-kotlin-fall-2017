@@ -21,7 +21,7 @@ class ArgumentsList(val type: ArgumentsBrackets, vararg val args: String) {
 
 private fun keyValueArguments(vararg args: Pair<String, String?>): Array<String> =
         args.map {
-            assert("=" !in it.first);
+            assert("=" !in it.first)
             if (it.second != null)
                 "${it.first}=${it.second}"
             else
