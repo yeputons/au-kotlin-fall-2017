@@ -1,6 +1,6 @@
 # ДЗ01 - Fun programming language
 
-**Дедлайн**: 2017.11.12 23:59 (полный балл)
+**Дедлайн**: 2017.11.12 23:59 (полный балл), 2017.11.19 23:59 (50%)
 
 Необходимо реализовать интерпретатор простого языка программирования.
 
@@ -17,7 +17,7 @@ WHILE = "while" "(" EXPRESSION ")" BLOCK_WITH_BRACES
 IF = "if" "(" EXPRESSION ")" BLOCK_WITH_BRACES ("else" BLOCK_WITH_BRACES)?
 ASSIGNMENT = IDENTIFIER "=" EXPRESSION
 RETURN = "return" EXPRESSION
-EXPRESSION = FUNCTION_CALL | BINARY_EXPRESSION | LITERAL | "(" EXPRESSION ")"
+EXPRESSION = FUNCTION_CALL | BINARY_EXPRESSION | IDENTIFIER | LITERAL | "(" EXPRESSION ")"
 FUNCTION_CALL = IDENTIFIER "(" ARGUMENTS ")"
 ARGUMENTS = EXPRESSION{","}
 
@@ -63,7 +63,9 @@ if (a > b) {
 
 ```
 fun fib(n) {
-    if (n <= 1) return 1
+    if (n <= 1) {
+        return 1
+    }
     return fib(n - 1) + fib(n - 2)
 }
 
