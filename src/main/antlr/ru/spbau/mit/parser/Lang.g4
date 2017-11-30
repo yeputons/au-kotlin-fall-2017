@@ -22,8 +22,10 @@ statement           returns [Statement value]
     ;
 functionStatement   returns [FunctionDefinitionStatement value]  : 'fun' IDENTIFIER '(' parameterNames ')' blockWithBraces
     { $value = new FunctionDefinitionStatement($IDENTIFIER.text, $parameterNames.value, $blockWithBraces.value); } ;
-variableStatement   returns [VariableDeclarationStatement value] : 'var' IDENTIFIER ('=' expression)?
-    { $value = new VariableDeclarationStatement($IDENTIFIER.text, $expression.value); } ;
+variableStatement   returns [VariableDeclarationStatement value]
+    locals [Expression expr = null]
+    : 'var' IDENTIFIER ('=' expression { $expr = $expression.value; })?
+    { $value = new VariableDeclarationStatement($IDENTIFIER.text, $expr); } ;
 parameterNames      returns [List<String> value]                 : (names+=IDENTIFIER (',' names+=IDENTIFIER)*)?
     { $value = $names.stream().map(x -> x.getText()).collect(java.util.stream.Collectors.toList()); } ;
 whileStatement      returns [WhileStatement value]               : 'while' '(' expression ')' statement

@@ -109,6 +109,20 @@ class TestParser {
     }
 
     @Test
+    fun testVariableDeclarationWithDefault() {
+        val parser = getParser("var x = 5")
+        val expected = block(VariableDeclarationStatement("x", i(5)))
+        assertEquals(expected, parser.file().value!!)
+    }
+
+    @Test
+    fun testVariableDeclarationNoDefault() {
+        val parser = getParser("var x")
+        val expected = block(VariableDeclarationStatement("x", null))
+        assertEquals(expected, parser.file().value!!)
+    }
+
+    @Test
     fun testAssociativity() {
         val parser = getParser("1 + 2 - 3 + 4")
         val expected =
