@@ -106,4 +106,24 @@ class TestParser {
         )
         assertEquals(expected, parser.file().value!!)
     }
+
+    @Test
+    fun testAssociativity() {
+        val parser = getParser("1 + 2 - 3 + 4")
+        val expected =
+                BinaryOperationExpression(
+                        BinaryOperationExpression(
+                                BinaryOperationExpression(
+                                        i(1),
+                                        BinaryOperation.ADD,
+                                        i(2)
+                                ),
+                                BinaryOperation.SUB,
+                                i(3)
+                        ),
+                        BinaryOperation.ADD,
+                        i(4)
+                )
+        assertEquals(expected, parser.expression().value!!)
+    }
 }

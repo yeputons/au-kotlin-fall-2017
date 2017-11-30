@@ -43,27 +43,24 @@ returnStatement     returns [ReturnStatement value]              : 'return' expr
 // See https://github.com/antlr/antlr4/blob/master/doc/left-recursion.md
 // Cases are listed from the highest priority to the lowest priority
 expression returns [Expression value]
-    // As we have multiple cases for binary expression with the same action,
-    // let's process them at once in the end.
-    @after {
-      if ($value == null) {
-        $value = new BinaryOperationExpression(
-            $lhs.value,
-            BinaryOperation.Companion.getByToken().get($op.text),
-            $rhs.value
-        );
-      }
-    }
     : functionCall        { $value = $functionCall.value; }
     | literal             { $value = new ConstExpression($literal.value); }
     | IDENTIFIER          { $value = new VariableExpression($IDENTIFIER.text); }
     | '(' expression ')'  { $value = $expression.value; }
+    // Unfortunately, Antlr4 calls '@after' action only after it processes multiple elements,
+    // so we cannot extract common action from the following rules.
     | lhs=expression op='||' rhs=expression
+        { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
     | lhs=expression op='&&' rhs=expression
+        { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
     | lhs=expression op=('==' | '!=') rhs=expression
+        { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
     | lhs=expression op=('<' | '<=' | '>' | '>=') rhs=expression
+        { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
     | lhs=expression op=('*' | '/' | '%') rhs=expression
+        { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
     | lhs=expression op=('+' | '-') rhs=expression
+        { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
     ;
 functionCall returns [FunctionCallExpression value] : IDENTIFIER '(' arguments ')'
     { $value = new FunctionCallExpression($IDENTIFIER.text, $arguments.value); } ;
