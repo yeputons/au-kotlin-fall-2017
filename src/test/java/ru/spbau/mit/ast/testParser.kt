@@ -40,7 +40,7 @@ class TestParser {
                         blockStmt(callS("println", i(0)))
                 )
         )
-        assertEquals(expected, parser.file().value!!)
+        assertEquals(expected, parser.file().ast())
     }
 
     @Test
@@ -81,7 +81,7 @@ class TestParser {
                         )
                 )
         )
-        assertEquals(expected, parser.file().value!!)
+        assertEquals(expected, parser.file().ast())
     }
 
     @Test
@@ -105,21 +105,21 @@ class TestParser {
                 ),
                 callS("println", callE("foo", i(41)))
         )
-        assertEquals(expected, parser.file().value!!)
+        assertEquals(expected, parser.file().ast())
     }
 
     @Test
     fun testVariableDeclarationWithDefault() {
         val parser = getParser("var x = 5")
         val expected = block(VariableDeclarationStatement("x", i(5)))
-        assertEquals(expected, parser.file().value!!)
+        assertEquals(expected, parser.file().ast())
     }
 
     @Test
     fun testVariableDeclarationNoDefault() {
         val parser = getParser("var x")
         val expected = block(VariableDeclarationStatement("x", null))
-        assertEquals(expected, parser.file().value!!)
+        assertEquals(expected, parser.file().ast())
     }
 
     @Test
@@ -139,7 +139,7 @@ class TestParser {
                         BinaryOperation.ADD,
                         i(4)
                 )
-        assertEquals(expected, parser.expression().value!!)
+        assertEquals(expected, parser.expression().ast())
     }
 
     @Test
@@ -156,7 +156,7 @@ class TestParser {
                                 BinaryOperation.EQ.e(BinaryOperation.LT.e(i(50), i(60)), BinaryOperation.LE.e(i(70), i(80)))
                         )
                 )
-        assertEquals(expected, parser.expression().value!!)
+        assertEquals(expected, parser.expression().ast())
     }
 
     @Test
@@ -179,7 +179,7 @@ class TestParser {
                                 BinaryOperation.DIV.e(i(11), i(12))
                         )
                 )
-        assertEquals(expected, parser.expression().value!!)
+        assertEquals(expected, parser.expression().ast())
     }
 
     @Test
@@ -198,7 +198,7 @@ class TestParser {
                                 BinaryOperation.GT.e(i(7), i(8))
                         )
                 )
-        assertEquals(expected, parser.expression().value!!)
+        assertEquals(expected, parser.expression().ast())
     }
 
     @Test
@@ -209,6 +209,6 @@ class TestParser {
                         BinaryOperation.MUL.e(i(1), BinaryOperation.ADD.e(i(2), i(3))),
                         BinaryOperation.MUL.e(BinaryOperation.ADD.e(i(4), i(5)), i(6))
                 )
-        assertEquals(expected, parser.expression().value!!)
+        assertEquals(expected, parser.expression().ast())
     }
 }

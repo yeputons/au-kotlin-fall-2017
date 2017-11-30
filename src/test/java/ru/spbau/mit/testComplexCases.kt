@@ -4,13 +4,14 @@ import org.antlr.v4.runtime.BufferedTokenStream
 import org.antlr.v4.runtime.CharStreams
 import org.junit.Test
 import ru.spbau.mit.ast.BlockStatement
+import ru.spbau.mit.ast.ast
 import ru.spbau.mit.parser.LangLexer
 import ru.spbau.mit.parser.LangParser
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class ComplexCasesTest {
-    private fun parse(s: String): BlockStatement = BlockStatement(LangParser(BufferedTokenStream(LangLexer(CharStreams.fromString(s)))).file().value!!)
+    private fun parse(s: String): BlockStatement = BlockStatement(LangParser(BufferedTokenStream(LangLexer(CharStreams.fromString(s)))).file().ast())
     private val printed = mutableListOf<List<InterpreterValue>>()
     private val context = BaseInterpretationContext(createStdlibScope(println = { printed.add(it); }))
 
