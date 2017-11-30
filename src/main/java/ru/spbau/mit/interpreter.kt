@@ -95,16 +95,7 @@ class BaseInterpretationContext(private val scope: Scope) : InterpretationContex
         when (stmt) {
             is FunctionDefinitionStatement -> {
                 val closure = Scope(scope)
-                val funImpl: InterpreterFunction = fun(args): InterpreterValue? {
-                    if (args.size != stmt.parameterNames.size) {
-                        throw InterpreterException("Expected ${stmt.parameterNames.size} arguments, found ${args.size} when calling function ${stmt.name}")
-                    }
-                    val callScope = Scope(closure)
-                    for ((name, value) in stmt.parameterNames.zip(args)) {
-                        callScope.variables.addOrShadow(name, MutableInterpreterValue(value))
-                    }
-                    return BaseInterpretationContext(callScope).run(stmt.body)
-                }
+                val funImpl: InterpreterFunction = { args -> callFunction(stmt, closure, args) }
                 scope.functions.addOrShadow(stmt.name, funImpl)
                 closure.functions.addOrShadow(stmt.name, funImpl)  // Allow non-mutual recursion
                 return null
@@ -143,6 +134,17 @@ class BaseInterpretationContext(private val scope: Scope) : InterpretationContex
             }
             is ReturnStatement -> return run(stmt.value)
         }
+    }
+
+    private fun callFunction(function: FunctionDefinitionStatement, closure: Scope, args: List<InterpreterValue>): InterpreterValue? {
+        if (args.size != function.parameterNames.size) {
+            throw InterpreterException("Expected ${function.parameterNames.size} arguments, found ${args.size} when calling function ${function.name}")
+        }
+        val callScope = Scope(closure)
+        for ((name, value) in function.parameterNames.zip(args)) {
+            callScope.variables.addOrShadow(name, MutableInterpreterValue(value))
+        }
+        return BaseInterpretationContext(callScope).run(function.body)
     }
 }
 
