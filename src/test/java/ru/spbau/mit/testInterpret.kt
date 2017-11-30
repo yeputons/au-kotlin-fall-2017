@@ -50,46 +50,40 @@ class ScopeTest {
 class BinaryOperationTest {
     @Test
     fun testAdd() {
-        assertEquals(10, BinaryOperation.ADD(lazyOf(3), lazyOf(7)).value)
+        assertEquals(10, BinaryOperation.ADD(3, { 7 }))
     }
 
     @Test
     fun testSub() {
-        assertEquals(-4, BinaryOperation.SUB(lazyOf(3), lazyOf(7)).value)
+        assertEquals(-4, BinaryOperation.SUB(3, { 7 }))
     }
 
     @Test
     fun testAnd() {
-        assertEquals(4, BinaryOperation.AND(lazyOf(3), lazyOf(4)).value)
-        assertEquals(0, BinaryOperation.AND(lazyOf(3), lazyOf(0)).value)
-        assertEquals(0, BinaryOperation.AND(lazyOf(0), lazyOf(4)).value)
-        assertEquals(0, BinaryOperation.AND(lazyOf(0), lazyOf(0)).value)
+        assertEquals(4, BinaryOperation.AND(3, { 4 }))
+        assertEquals(0, BinaryOperation.AND(3, { 0 }))
+        assertEquals(0, BinaryOperation.AND(0, { 4 }))
+        assertEquals(0, BinaryOperation.AND(0, { 0 }))
     }
 
     @Test
     fun testOr() {
-        assertEquals(3, BinaryOperation.OR(lazyOf(3), lazyOf(4)).value)
-        assertEquals(3, BinaryOperation.OR(lazyOf(3), lazyOf(0)).value)
-        assertEquals(4, BinaryOperation.OR(lazyOf(0), lazyOf(4)).value)
-        assertEquals(0, BinaryOperation.OR(lazyOf(0), lazyOf(0)).value)
+        assertEquals(3, BinaryOperation.OR(3, { 4 }))
+        assertEquals(3, BinaryOperation.OR(3, { 0 }))
+        assertEquals(4, BinaryOperation.OR(0, { 4 }))
+        assertEquals(0, BinaryOperation.OR(0, { 0 }))
     }
 
     @Test
     fun testLazyAnd() {
-        val rhsFail = lazy { fail(); 10 }
-        assertSame(rhsFail, BinaryOperation.AND(lazyOf(3), rhsFail))
-
-        val lhs0 = lazyOf(0)
-        assertSame(lhs0, BinaryOperation.AND(lhs0, rhsFail))
+        assertEquals(10, BinaryOperation.AND(3, { 10 }))
+        assertEquals(0, BinaryOperation.AND(0, { fail(); 10 }))
     }
 
     @Test
     fun testLazyOr() {
-        val rhsFail = lazy { fail(); 0 }
-        val lhs3 = lazyOf(3)
-        assertSame(lhs3, BinaryOperation.OR(lhs3, rhsFail))
-
-        assertSame(rhsFail, BinaryOperation.OR(lazyOf(0), rhsFail))
+        assertEquals(3, BinaryOperation.OR(3, { fail(); 10 }))
+        assertEquals(10, BinaryOperation.OR(0, { 10 }))
     }
 }
 

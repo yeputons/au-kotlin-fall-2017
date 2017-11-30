@@ -27,30 +27,29 @@ interface InterpretationContext {
 
 class InterpreterException(message: String) : Exception(message)
 
-operator fun BinaryOperation.invoke(lhs: Lazy<InterpreterValue>, rhs: Lazy<InterpreterValue>): Lazy<InterpreterValue> =
-        when (this) {
-            BinaryOperation.OR -> if (lhs.value != 0) lhs else rhs
-            BinaryOperation.AND -> if (lhs.value == 0) lhs else rhs
-            else -> {
-                val lhs = lhs.value
-                val rhs = rhs.value
-                lazyOf(when (this) {
-                    BinaryOperation.OR -> throw RuntimeException("BinaryOperation.OR should've been already processed")
-                    BinaryOperation.AND -> throw RuntimeException("BinaryOperation.AND should've been already processed")
-                    BinaryOperation.EQ -> if (lhs == rhs) 1 else 0
-                    BinaryOperation.NEQ -> if (lhs != rhs) 1 else 0
-                    BinaryOperation.LT -> if (lhs < rhs) 1 else 0
-                    BinaryOperation.LE -> if (lhs <= rhs) 1 else 0
-                    BinaryOperation.GT -> if (lhs > rhs) 1 else 0
-                    BinaryOperation.GE -> if (lhs >= rhs) 1 else 0
-                    BinaryOperation.MUL -> lhs * rhs
-                    BinaryOperation.DIV -> lhs / rhs
-                    BinaryOperation.MOD -> lhs % rhs
-                    BinaryOperation.ADD -> lhs + rhs
-                    BinaryOperation.SUB -> lhs - rhs
-                })
+operator fun BinaryOperation.invoke(lhs: InterpreterValue, rhsEval: () -> InterpreterValue): InterpreterValue =
+    when (this) {
+        BinaryOperation.OR -> if (lhs != 0) lhs else rhsEval()
+        BinaryOperation.AND -> if (lhs == 0) lhs else rhsEval()
+        else -> {
+            val rhs = rhsEval()
+            when (this) {
+                BinaryOperation.OR -> throw RuntimeException("BinaryOperation.OR should've been already processed")
+                BinaryOperation.AND -> throw RuntimeException("BinaryOperation.AND should've been already processed")
+                BinaryOperation.EQ -> if (lhs == rhs) 1 else 0
+                BinaryOperation.NEQ -> if (lhs != rhs) 1 else 0
+                BinaryOperation.LT -> if (lhs < rhs) 1 else 0
+                BinaryOperation.LE -> if (lhs <= rhs) 1 else 0
+                BinaryOperation.GT -> if (lhs > rhs) 1 else 0
+                BinaryOperation.GE -> if (lhs >= rhs) 1 else 0
+                BinaryOperation.MUL -> lhs * rhs
+                BinaryOperation.DIV -> lhs / rhs
+                BinaryOperation.MOD -> lhs % rhs
+                BinaryOperation.ADD -> lhs + rhs
+                BinaryOperation.SUB -> lhs - rhs
             }
         }
+    }
 
 class ScopedMap<T>(private val dict: MutableMap<String, T>) {
     /**
@@ -79,7 +78,7 @@ class BaseInterpretationContext(private val scope: Scope) : InterpretationContex
                 is FunctionCallExpression -> scope.functions[expr.name](expr.arguments.map { run(it) }) ?: 0
                 is ConstExpression -> expr.value
                 is VariableExpression -> scope.variables[expr.name].value
-                is BinaryOperationExpression -> expr.op(lazy { run(expr.lhs) }, lazy { run(expr.rhs) }).value
+                is BinaryOperationExpression -> expr.op(run(expr.lhs), { run(expr.rhs) })
             }
 
     private fun run(block: Block): InterpreterValue? =
