@@ -36,7 +36,7 @@ class ScopeTest {
 
     @Test
     fun testScope() {
-        val func1: InterpreterFunction = fun(args): InterpreterValue? { return 10 }
+        val func1: InterpreterFunction = fun(args): InterpreterValue? = 10
         val one = MutableInterpreterValue(10)
         val parent = Scope(
                 functions = ScopedMap(mutableMapOf("func1" to func1)),
