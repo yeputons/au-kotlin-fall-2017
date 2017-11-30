@@ -27,6 +27,17 @@ interface InterpretationContext {
 
 class InterpreterException(message: String) : Exception(message)
 
+private fun checkRuntimeCorrectness(condition: Boolean, message: () -> String) {
+    if (!condition) {
+        throw InterpreterException(message())
+    }
+}
+
+private fun<T> T?.mustBeNonNull(message: () -> String): T {
+    checkRuntimeCorrectness(this != null, message)
+    return this!!
+}
+
 operator fun BinaryOperation.invoke(lhs: InterpreterValue, rhsEval: () -> InterpreterValue): InterpreterValue =
     when (this) {
         BinaryOperation.OR -> if (lhs != 0) lhs else rhsEval()
@@ -58,12 +69,10 @@ class ScopedMap<T>(private val dict: MutableMap<String, T>, private val declared
     constructor(parent: ScopedMap<T>) : this(HashMap(parent.dict), mutableSetOf())
 
     operator fun get(name: String): T =
-            dict[name] ?: throw InterpreterException("'$name' is not found in current scope")
+            dict[name].mustBeNonNull { "'$name' is not found in current scope" }
 
     fun addOrShadow(name: String, value: T) {
-        if (name in declaredHere) {
-            throw InterpreterException("'$name' already exists in the current scope")
-        }
+        checkRuntimeCorrectness(name !in declaredHere) { "'$name' already exists in the current scope" }
         dict[name] = value
         declaredHere.add(name)
     }
@@ -137,8 +146,8 @@ class BaseInterpretationContext(private val scope: Scope) : InterpretationContex
     }
 
     private fun callFunction(function: FunctionDefinitionStatement, closure: Scope, args: List<InterpreterValue>): InterpreterValue? {
-        if (args.size != function.parameterNames.size) {
-            throw InterpreterException("Expected ${function.parameterNames.size} arguments, found ${args.size} when calling function ${function.name}")
+        checkRuntimeCorrectness(args.size == function.parameterNames.size) {
+            "Expected ${function.parameterNames.size} arguments, found ${args.size} when calling function ${function.name}"
         }
         val callScope = Scope(closure)
         for ((name, value) in function.parameterNames.zip(args)) {
