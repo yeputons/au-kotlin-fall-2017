@@ -12,6 +12,7 @@ class TestParser {
 
     private fun v(name: String) = VariableExpression(name)
     private fun i(value: Int) = ConstExpression(value)
+    private fun BinaryOperation.e(lhs: Expression, rhs: Expression) = BinaryOperationExpression(lhs, this, rhs)
 
     private fun block(vararg statements: Statement) = Block(listOf(*statements))
     private fun blockStmt(vararg statements: Statement) = BlockStatement(block(*statements))
@@ -123,6 +124,76 @@ class TestParser {
                         ),
                         BinaryOperation.ADD,
                         i(4)
+                )
+        assertEquals(expected, parser.expression().value!!)
+    }
+
+    @Test
+    fun testPrecedenceOrAndEqLe() {
+        val parser = getParser("1 < 2 == 3 > 4 && 5 <= 6 != 7 >= 8 || 10 > 20 != 30 >= 40 && 50 < 60 == 70 <= 80")
+        val expected =
+                BinaryOperation.OR.e(
+                        BinaryOperation.AND.e(
+                                BinaryOperation.EQ.e(BinaryOperation.LT.e(i(1), i(2)), BinaryOperation.GT.e(i(3), i(4))),
+                                BinaryOperation.NEQ.e(BinaryOperation.LE.e(i(5), i(6)), BinaryOperation.GE.e(i(7), i(8)))
+                        ),
+                        BinaryOperation.AND.e(
+                                BinaryOperation.NEQ.e(BinaryOperation.GT.e(i(10), i(20)), BinaryOperation.GE.e(i(30), i(40))),
+                                BinaryOperation.EQ.e(BinaryOperation.LT.e(i(50), i(60)), BinaryOperation.LE.e(i(70), i(80)))
+                        )
+                )
+        assertEquals(expected, parser.expression().value!!)
+    }
+
+    @Test
+    fun testPrecedenceLeMulSum() {
+        val parser = getParser("1 * 2 - 3 / 4 + 5 % 6 <= 7 % 8 + 9 * 10 - 11 / 12")
+        val expected =
+                BinaryOperation.LE.e(
+                        BinaryOperation.ADD.e(
+                                BinaryOperation.SUB.e(
+                                        BinaryOperation.MUL.e(i(1), i(2)),
+                                        BinaryOperation.DIV.e(i(3), i(4))
+                                ),
+                                BinaryOperation.MOD.e(i(5), i(6))
+                        ),
+                        BinaryOperation.SUB.e(
+                                BinaryOperation.ADD.e(
+                                        BinaryOperation.MOD.e(i(7), i(8)),
+                                        BinaryOperation.MUL.e(i(9), i(10))
+                                ),
+                                BinaryOperation.DIV.e(i(11), i(12))
+                        )
+                )
+        assertEquals(expected, parser.expression().value!!)
+    }
+
+    @Test
+    fun testPrecedenceMixed() {
+        val parser = getParser("1 + 2 * 3 == 4 || 5 == 6 && 7 > 8")
+        val expected =
+                BinaryOperation.OR.e(
+                        BinaryOperation.EQ.e(
+                                BinaryOperation.ADD.e(
+                                        i(1), BinaryOperation.MUL.e(i(2), i(3))
+                                ),
+                                i(4)
+                        ),
+                        BinaryOperation.AND.e(
+                                BinaryOperation.EQ.e(i(5), i(6)),
+                                BinaryOperation.GT.e(i(7), i(8))
+                        )
+                )
+        assertEquals(expected, parser.expression().value!!)
+    }
+
+    @Test
+    fun testExprBrackets() {
+        val parser = getParser("1 * (2 + 3) - (4 + 5) * 6")
+        val expected =
+                BinaryOperation.SUB.e(
+                        BinaryOperation.MUL.e(i(1), BinaryOperation.ADD.e(i(2), i(3))),
+                        BinaryOperation.MUL.e(BinaryOperation.ADD.e(i(4), i(5)), i(6))
                 )
         assertEquals(expected, parser.expression().value!!)
     }

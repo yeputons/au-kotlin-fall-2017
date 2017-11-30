@@ -49,17 +49,17 @@ expression returns [Expression value]
     | '(' expression ')'  { $value = $expression.value; }
     // Unfortunately, Antlr4 calls '@after' action only after it processes multiple elements,
     // so we cannot extract common action from the following rules.
-    | lhs=expression op='||' rhs=expression
-        { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
-    | lhs=expression op='&&' rhs=expression
-        { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
-    | lhs=expression op=('==' | '!=') rhs=expression
-        { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
-    | lhs=expression op=('<' | '<=' | '>' | '>=') rhs=expression
-        { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
     | lhs=expression op=('*' | '/' | '%') rhs=expression
         { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
     | lhs=expression op=('+' | '-') rhs=expression
+        { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
+    | lhs=expression op=('<' | '<=' | '>' | '>=') rhs=expression
+        { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
+    | lhs=expression op=('==' | '!=') rhs=expression
+        { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
+    | lhs=expression op='&&' rhs=expression
+        { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
+    | lhs=expression op='||' rhs=expression
         { $value = new BinaryOperationExpression($lhs.value, BinaryOperation.Companion.getByToken().get($op.text), $rhs.value); }
     ;
 functionCall returns [FunctionCallExpression value] : IDENTIFIER '(' arguments ')'
