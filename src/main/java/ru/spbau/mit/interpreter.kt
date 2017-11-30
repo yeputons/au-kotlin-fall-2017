@@ -122,8 +122,7 @@ class BaseInterpretationContext(private val scope: Scope) : InterpretationContex
             }
             is WhileStatement -> {
                 while (run(stmt.condition) != 0) {
-                    // TODO: always create a new Scope
-                    val result = run(stmt.body)
+                    val result = BaseInterpretationContext(Scope(scope)).run(stmt.body)
                     if (result != null) {
                         return result
                     }
@@ -131,11 +130,10 @@ class BaseInterpretationContext(private val scope: Scope) : InterpretationContex
                 return null
             }
             is IfStatement ->
-                // TODO: always create a new Scope
                 return if (run(stmt.condition) != 0) {
-                    run(stmt.trueBody)
+                    BaseInterpretationContext(Scope(scope)).run(stmt.trueBody)
                 } else {
-                    run(stmt.falseBody)
+                    BaseInterpretationContext(Scope(scope)).run(stmt.falseBody)
                 }
             is VariableAssignmentStatement -> {
                 scope.variables[stmt.name].value = run(stmt.value)

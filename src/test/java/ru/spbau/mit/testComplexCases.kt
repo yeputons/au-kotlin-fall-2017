@@ -132,6 +132,38 @@ class ComplexCasesTest {
     }
 
     @Test
+    fun testIfCreatesNewScope() {
+        val code = parse("""
+            |if (1) var x = 10
+            |println(x)""".trimMargin())
+        assertFailsWith(InterpreterException::class) {
+            context.run(code)
+        }
+    }
+
+    @Test
+    fun testIfElseCreatesNewScope() {
+        val code = parse("""
+            |if (0) {} else var x = 10
+            |println(x)""".trimMargin())
+        assertFailsWith(InterpreterException::class) {
+            context.run(code)
+        }
+    }
+
+    @Test
+    fun testWhileCreatesNewScope() {
+        val code = parse("""
+            |var x = 0
+            |fun foo() { x = x + 1 return x <= 1 }
+            |while (foo()) var y = 0
+            |println(y)""".trimMargin())
+        assertFailsWith(InterpreterException::class) {
+            context.run(code)
+        }
+    }
+
+    @Test
     fun testLazyAnd() {
         val code = parse("""
             |fun printAndRet(print, ret) { println(print) return ret }
