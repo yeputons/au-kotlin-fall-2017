@@ -6,6 +6,7 @@ import org.junit.Test
 import ru.spbau.mit.parser.LangLexer
 import ru.spbau.mit.parser.LangParser
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
 class TestParser {
     private fun getParser(s: String): LangParser = LangParser(BufferedTokenStream(LangLexer(CharStreams.fromString(s))))
@@ -41,6 +42,7 @@ class TestParser {
                 )
         )
         assertEquals(expected, parser.file().ast())
+        assertEquals(0, parser.numberOfSyntaxErrors)
     }
 
     @Test
@@ -82,6 +84,7 @@ class TestParser {
                 )
         )
         assertEquals(expected, parser.file().ast())
+        assertEquals(0, parser.numberOfSyntaxErrors)
     }
 
     @Test
@@ -106,6 +109,7 @@ class TestParser {
                 callS("println", callE("foo", i(41)))
         )
         assertEquals(expected, parser.file().ast())
+        assertEquals(0, parser.numberOfSyntaxErrors)
     }
 
     @Test
@@ -113,6 +117,7 @@ class TestParser {
         val parser = getParser("var x = 5")
         val expected = block(VariableDeclarationStatement("x", i(5)))
         assertEquals(expected, parser.file().ast())
+        assertEquals(0, parser.numberOfSyntaxErrors)
     }
 
     @Test
@@ -120,6 +125,7 @@ class TestParser {
         val parser = getParser("var x")
         val expected = block(VariableDeclarationStatement("x", null))
         assertEquals(expected, parser.file().ast())
+        assertEquals(0, parser.numberOfSyntaxErrors)
     }
 
     @Test
@@ -140,6 +146,7 @@ class TestParser {
                         i(4)
                 )
         assertEquals(expected, parser.expression().ast())
+        assertEquals(0, parser.numberOfSyntaxErrors)
     }
 
     @Test
@@ -157,6 +164,7 @@ class TestParser {
                         )
                 )
         assertEquals(expected, parser.expression().ast())
+        assertEquals(0, parser.numberOfSyntaxErrors)
     }
 
     @Test
@@ -180,6 +188,7 @@ class TestParser {
                         )
                 )
         assertEquals(expected, parser.expression().ast())
+        assertEquals(0, parser.numberOfSyntaxErrors)
     }
 
     @Test
@@ -199,6 +208,7 @@ class TestParser {
                         )
                 )
         assertEquals(expected, parser.expression().ast())
+        assertEquals(0, parser.numberOfSyntaxErrors)
     }
 
     @Test
@@ -210,5 +220,14 @@ class TestParser {
                         BinaryOperation.MUL.e(BinaryOperation.ADD.e(i(4), i(5)), i(6))
                 )
         assertEquals(expected, parser.expression().ast())
+        assertEquals(0, parser.numberOfSyntaxErrors)
+    }
+
+    @Test
+    fun testSyntaxError() {
+        val parser = getParser("(1 + )")
+        assertEquals(0, parser.numberOfSyntaxErrors)
+        parser.expression()
+        assertNotEquals(0, parser.numberOfSyntaxErrors)
     }
 }
