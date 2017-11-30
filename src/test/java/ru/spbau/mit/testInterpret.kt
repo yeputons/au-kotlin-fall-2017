@@ -12,12 +12,10 @@ class ScopeTest {
         val level1 = ScopedMap(mutableMapOf("first" to 1, "second" to 2))
         assertEquals(1, level1["first"])
         assertEquals(2, level1["second"])
-        level1.addOrShadow("second", 20)
-        assertEquals(20, level1["second"])
 
         val level2 = ScopedMap(level1)
         assertEquals(1, level2["first"])
-        assertEquals(20, level2["second"])
+        assertEquals(2, level2["second"])
 
         level2.addOrShadow("first", 100)
         assertEquals(100, level2["first"])
@@ -25,7 +23,15 @@ class ScopeTest {
 
         level2.addOrShadow("second", 200)
         assertEquals(200, level2["second"])
-        assertEquals(20, level1["second"])
+        assertEquals(2, level1["second"])
+    }
+
+    @Test
+    fun testScopedMapNoRedefinition() {
+        val map = ScopedMap(mutableMapOf("first" to 1))
+        assertFailsWith(InterpreterException::class) {
+            map.addOrShadow("first", 1)
+        }
     }
 
     @Test

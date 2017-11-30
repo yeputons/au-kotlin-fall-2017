@@ -82,6 +82,26 @@ class ComplexCasesTest {
     }
 
     @Test
+    fun testNoDoubleDeclaration() {
+        val code = parse("""
+            |var x = 10
+            |var x = 10""".trimMargin())
+        assertFailsWith(InterpreterException::class) {
+            context.run(code)
+        }
+    }
+
+    @Test
+    fun testRedeclarePrintln() {
+        val code = parse("""
+            |fun foo(x) { println(x) }
+            |fun println(x) { foo(x) foo(5) foo(x) }
+            |println(10)""".trimMargin())
+        context.run(code)
+        assertEquals(listOf(listOf(10), listOf(5), listOf(10)), printed)
+    }
+
+    @Test
     fun testClosureCapturesVariable() {
         // See https://github.com/java-course-au/kotlin-course/issues/38
         val code = parse("""

@@ -51,17 +51,21 @@ operator fun BinaryOperation.invoke(lhs: InterpreterValue, rhsEval: () -> Interp
         }
     }
 
-class ScopedMap<T>(private val dict: MutableMap<String, T>) {
+class ScopedMap<T>(private val dict: MutableMap<String, T>, private val declaredHere: MutableSet<String> = dict.keys.toMutableSet()) {
     /**
      * Make a copy of `parent`
      */
-    constructor(parent: ScopedMap<T>) : this(HashMap(parent.dict))
+    constructor(parent: ScopedMap<T>) : this(HashMap(parent.dict), mutableSetOf())
 
     operator fun get(name: String): T =
             dict[name] ?: throw InterpreterException("'$name' is not found in current scope")
 
     fun addOrShadow(name: String, value: T) {
+        if (name in declaredHere) {
+            throw InterpreterException("'$name' already exists in the current scope")
+        }
         dict[name] = value
+        declaredHere.add(name)
     }
 }
 
